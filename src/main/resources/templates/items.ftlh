@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Auction Winners</title>
+    <title>Silent Auction</title>
 
     <!-- Bootstrap -->
     <link href="/webjars/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -21,7 +21,7 @@
                 <span class="sr-only">Toggle navigation</span>
                 <span class="glyphicon glyphicon-align-justify"></span>
               </button>
-              <a class="navbar-brand" href="items.html"><span class="glyphicon glyphicon-menu-left"></span> Items</a>
+              <a class="navbar-brand" href="add-item.html"><span class="glyphicon glyphicon-plus"></span> Add Item</a>
             </div>
 
             <!-- Collect the nav links, forms, and other content for toggling -->
@@ -38,14 +38,17 @@
               </form>
             </div><!-- /.navbar-collapse -->
           </div><!-- /.container-fluid -->
-        </nav>         
-        <table class="table table-condensed">
-        <tr><th>Item</th><th>Name</th><th>Email</th><th>Amt</th></tr>
-        <tr><td><a href="item.html?id=1">Garage Door Opener</a></td><td>Ben La Monica</td><td>ben.lamonica@gmail.com</td><td>$25</td></tr>
-        <tr><td><a href="item.html?id=2">Cake Decoration</a></td><td>Ben La Monica</td><td>ben.lamonica@gmail.com</td><td>$20</td></tr>
-        </table>
+        </nav>     
+        <div class="container-fluid">
+          <div class="row">
+            <#list items as item>
+            <div class="col-xs-6 col-sm-3"><a href="item.html?itemId=${item.id}"><img class="img-thumbnail" src="thumbs/${item.image}item.png"/><p class="text-center"><small>Automated Garage Door System</small></p></a></div>
+            </#list>
+            <div class="col-xs-6 col-sm-3"><a href="item.html?itemId=1"><img class="img-thumbnail" src="item.png"/><p class="text-center"><small>Cake Decoration</small></p></a></div>
+            
+          </div>
+        </div>
     </div>
-
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="/webjars/jquery/dist/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->

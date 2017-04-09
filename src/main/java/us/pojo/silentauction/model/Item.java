@@ -1,70 +1,100 @@
 package us.pojo.silentauction.model;
 
+import java.util.List;
+
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 
 @Entity
 public class Item {
-	@Id
-	private int id;
-	
-	private String name;
-	
-	private String description;
-	
-	private String image;
-	
-	@ManyToOne
-	private User seller;
-	
-	private Double minimumBid;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
 
-	public int getId() {
-		return id;
-	}
+    private String name;
 
-	public void setId(int id) {
-		this.id = id;
-	}
+    private String description;
 
-	public String getName() {
-		return name;
-	}
+    private String image;
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    private boolean isHidden;
+    
+    @ManyToOne
+    private User seller;
+    
+    private String donor;
 
-	public String getDescription() {
-		return description;
-	}
+    @OneToMany
+    private List<Bid> bids;
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    public int getId() {
+        return id;
+    }
 
-	public String getImage() {
-		return image;
-	}
+    public void setId(int id) {
+        this.id = id;
+    }
 
-	public void setImage(String image) {
-		this.image = image;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public User getSeller() {
-		return seller;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setSeller(User seller) {
-		this.seller = seller;
-	}
+    public String getDescription() {
+        return description;
+    }
 
-	public Double getMinimumBid() {
-		return minimumBid;
-	}
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	public void setMinimumBid(Double minimumBid) {
-		this.minimumBid = minimumBid;
-	}
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public User getSeller() {
+        return seller;
+    }
+
+    public void setSeller(User seller) {
+        this.seller = seller;
+    }
+
+    public List<Bid> getBids() {
+        return bids;
+    }
+
+    public void setBids(List<Bid> bids) {
+        this.bids = bids;
+    }
+
+    public String getDonor() {
+        if (donor == null) {
+            return getSeller().getName();
+        }
+        return donor;
+    }
+
+    public void setDonor(String donor) {
+        this.donor = donor;
+    }
+
+    public boolean isHidden() {
+        return isHidden;
+    }
+
+    public void setHidden(boolean isHidden) {
+        this.isHidden = isHidden;
+    }
 }

@@ -3,50 +3,53 @@ package us.pojo.silentauction.model;
 import java.time.LocalDateTime;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 @Entity
 public class Bid {
-	@Id
-	private int id;
-	
-	@ManyToOne
-	private User user;
-	
-	private Double bid;
-	
-	private LocalDateTime bidTime;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
 
-	public int getId() {
-		return id;
-	}
+    @ManyToOne
+    private User user;
 
-	public void setId(int id) {
-		this.id = id;
-	}
+    private Double bid;
 
-	public User getUser() {
-		return user;
-	}
+    private LocalDateTime bidTime;
 
-	public void setUser(User user) {
-		this.user = user;
-	}
+    public int getId() {
+        return id;
+    }
 
-	public Double getBid() {
-		return bid;
-	}
+    public void setId(int id) {
+        this.id = id;
+    }
 
-	public void setBid(Double bid) {
-		this.bid = bid;
-	}
+    public User getUser() {
+        return user;
+    }
 
-	public LocalDateTime getBidTime() {
-		return bidTime;
-	}
+    public void setUser(User user) {
+        this.user = user;
+    }
 
-	public void setBidTime(LocalDateTime bidTime) {
-		this.bidTime = bidTime;
-	}
+    public Double getBid() {
+        return bid;
+    }
+
+    public void setBid(Double bid) {
+        this.bid = bid;
+    }
+
+    public LocalDateTime getBidTime() {
+        return bidTime;
+    }
+
+    public void setBidTime(LocalDateTime bidTime) {
+        this.bidTime = bidTime;
+    }
 }

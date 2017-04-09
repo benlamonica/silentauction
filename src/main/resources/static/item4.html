@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <title>Auction Winners</title>
+    <title>Silent Auction</title>
 
     <!-- Bootstrap -->
     <link href="/webjars/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -38,14 +38,36 @@
               </form>
             </div><!-- /.navbar-collapse -->
           </div><!-- /.container-fluid -->
-        </nav>         
+        </nav>      
+        <p class="text-center"><mark>Ben L's High Bid: $25</mark></p>
+        <form class="form-inline">
+          <div class="form-group">
+            <label class="sr-only" for="exampleInputAmount">Amount (in dollars)</label>
+            <div class="input-group">
+              <div class="input-group-addon">$</div>
+              <input type="text" pattern="[0-9]+" class="form-control" id="exampleInputAmount" placeholder="Amount">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Bid</button>
+        </form>
+        <h3>Four weeks of beginner taster piano lessons</h3>
+        <img class="img-responsive" src="images/piano.jpeg"/>
+        <p>
+            <strong>Donor:</strong> <span id="#donor">Harmony Playwell</span>
+        </p>
+        <p->
+            <strong>Description:</strong><span id="#description"> Do you love music? Do you wish you could play at Carnegie Hall? Take four weeks of piano lessons to see if this is your groove! Maybe little Johnny will be the next Billy Joel! Four weeks of half hour lessons will set the tone for a lifetime of practice and success. Anyone five and up should bid on this item to discover their inner Mozart!</span>
+        </p>
         <table class="table table-condensed">
-        <tr><th>Item</th><th>Name</th><th>Email</th><th>Amt</th></tr>
-        <tr><td><a href="item.html?id=1">Garage Door Opener</a></td><td>Ben La Monica</td><td>ben.lamonica@gmail.com</td><td>$25</td></tr>
-        <tr><td><a href="item.html?id=2">Cake Decoration</a></td><td>Ben La Monica</td><td>ben.lamonica@gmail.com</td><td>$20</td></tr>
+        <tr><th>Bidder</th><th>Amt</th><th>At</th></tr>
+        <tr class="success"><td>Ben L</td><td>$25</td><td>4/7 6:18PM</td></tr>
+        <tr><td>Laura L</td><td>$15</td><td>4/7 6:15PM</td></tr>
         </table>
-    </div>
+        <form class="form-inline">
+          <button type="submit" class="btn btn-danger btn-block">Remove Item</button>
+        </form>
 
+    </div>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="/webjars/jquery/dist/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->

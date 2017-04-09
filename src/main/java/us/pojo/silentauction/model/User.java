@@ -1,6 +1,8 @@
 package us.pojo.silentauction.model;
 
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
@@ -8,33 +10,42 @@ import javax.persistence.UniqueConstraint;
 @Entity
 @Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "email" }) })
 public class User {
-	@Id
-	private int id;
-	private String email;
-	private String password;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
+    private String email;
+    private String passwordHash;
+    private String name;
 
-	public int getId() {
-		return id;
-	}
+    public int getId() {
+        return id;
+    }
 
-	public void setId(int id) {
-		this.id = id;
-	}
+    public void setId(int id) {
+        this.id = id;
+    }
 
-	public String getEmail() {
-		return email;
-	}
+    public String getEmail() {
+        return email;
+    }
 
-	public void setEmail(String email) {
-		this.email = email;
-	}
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-	public String getPassword() {
-		return password;
-	}
+    public String getPasswordHash() {
+        return passwordHash;
+    }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    public void setPasswordHash(String password) {
+        this.passwordHash = password;
+    }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 }
