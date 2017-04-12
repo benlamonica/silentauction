@@ -1,13 +1,16 @@
 package us.pojo.silentauction.model;
 
 import java.util.List;
+import java.util.Optional;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 
 @Entity
 public class Item {
@@ -19,8 +22,6 @@ public class Item {
 
     private String description;
 
-    private String image;
-
     private boolean isHidden;
     
     @ManyToOne
@@ -28,7 +29,8 @@ public class Item {
     
     private String donor;
 
-    @OneToMany
+    @OneToMany(cascade={CascadeType.REMOVE})
+    @OrderBy("bid DESC")
     private List<Bid> bids;
 
     public int getId() {
@@ -53,14 +55,6 @@ public class Item {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getImage() {
-        return image;
-    }
-
-    public void setImage(String image) {
-        this.image = image;
     }
 
     public User getSeller() {
@@ -96,5 +90,25 @@ public class Item {
 
     public void setHidden(boolean isHidden) {
         this.isHidden = isHidden;
+    }
+    
+    public Bid getHighBid() {
+        if (bids != null && !bids.isEmpty()) {
+            return bids.get(0);
+        }
+        return null;
+    }
+    
+    public Double getHighBidAmount() {
+        Bid bid = getHighBid();
+        if (bid != null) {
+            return bid.getBid();
+        } else {
+            return 0.0;
+        }
+    }
+    
+    public String getHighBidder() {
+        return Optional.ofNullable(getHighBid()).map(Bid::getUser).map(User::getShortName).orElse(null);
     }
 }

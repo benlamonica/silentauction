@@ -1,5 +1,8 @@
 package us.pojo.silentauction.model;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -17,6 +20,14 @@ public class User {
     private String passwordHash;
     private String name;
 
+    public User(int id, String email, String name) {
+        this.id = id;
+        this.email = email;
+        this.name = name;
+    }
+    
+    public User() { }
+    
     public int getId() {
         return id;
     }
@@ -47,5 +58,17 @@ public class User {
 
     public void setName(String name) {
         this.name = name;
+    }
+    
+    private static final Pattern SHORT_NAME_PATTERN = Pattern.compile("^(.+? .).+$");
+    public String getShortName() {
+        if (name != null) {
+            Matcher m = SHORT_NAME_PATTERN.matcher(name);
+            if (m.find()) {
+                return m.group(1);
+            }
+        }
+        
+        return "";
     }
 }

@@ -1,6 +1,7 @@
 package us.pojo.silentauction.model;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -10,6 +11,7 @@ import javax.persistence.ManyToOne;
 
 @Entity
 public class Bid {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -21,6 +23,14 @@ public class Bid {
 
     private LocalDateTime bidTime;
 
+    public Bid() { }
+    
+    public Bid(User user, Double bid) {
+        this.user = user;
+        this.bid = bid;
+        this.bidTime = LocalDateTime.now();
+    }
+    
     public int getId() {
         return id;
     }
@@ -49,6 +59,11 @@ public class Bid {
         return bidTime;
     }
 
+    private final static DateTimeFormatter SHORT_TIME_FORMAT = DateTimeFormatter.ofPattern("MM/dd hh:mma");
+    public String getFormattedBidTime() {
+        return bidTime.format(SHORT_TIME_FORMAT);
+    }
+    
     public void setBidTime(LocalDateTime bidTime) {
         this.bidTime = bidTime;
     }
