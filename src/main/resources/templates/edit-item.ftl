@@ -11,11 +11,15 @@
           <input type="hidden" name="id" value="${item.id}"/>
           <div class="form-group">
             <label for="item_name">Item Name</label>
-            <input type="text" class="form-control" name="name" value="${item.name!""}" placeholder="Item Name">
+            <input type="text" class="form-control" name="name" value="${(item.name)!""}" placeholder="Item Name">
           </div>
           <div class="form-group">
             <label for="description">Description</label>
             <textarea class="form-control" name="description">${item.description!""}</textarea>
+          </div>
+          <div class="form-group">
+            <label for="donor">Donor</label>
+            <input type="text" class="form-control" name="donor" value="${(item.donor)!""}"/>
           </div>
           <div class="form-group">
             <label for="item_picture">Item Picture</label>
@@ -28,7 +32,7 @@
               };
             </script>
           </div>
-          <button type="submit" class="btn btn-success">Add Item</button>
+          <button type="submit" class="btn btn-success">${saveText} Item</button>
         </form>
     </div>
     <#include "bootstrap-footer.ftl">

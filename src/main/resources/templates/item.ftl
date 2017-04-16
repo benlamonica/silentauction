@@ -3,12 +3,12 @@
   <head>
     <#setting datetime_format="MM/dd HH:mma">
     <#include "bootstrap-header.ftl">
-    <title>Silent Auction - ${item.name}</title>
+    <title>Silent Auction - ${(item.name)!""}</title>
   </head>
   <body>
     <div class="container">
         <#include "nav.ftl">
-        <p class="text-center"><mark>${(item.highBidder?ensure_ends_with("'s"))!} High Bid: ${item.highBidAmount?string.currency!"$0"}</mark></p>
+        <p class="text-center"><mark>${(item.highBidder.shortName?ensure_ends_with("'s"))!} High Bid: ${item.highBidAmount?string.currency!"$0"}</mark></p>
         <#if errorMessage??>
             <p class="warning">${errorMessage}</p>      
         </#if>
@@ -37,6 +37,10 @@
         <tr ${bid?is_first?string("class=\"success\"", "")}><td>${bid.user.shortName!""}</td><td>${bid.bid?string.currency!""}</td><td>${bid.formattedBidTime}</td></tr>
         </#list>
         </table>
+        <form class="form-inline" action="edit-item.html" method="GET">
+          <input type="hidden" name="id" value="${item.id}"/>
+          <button type="submit" class="btn btn-primary btn-block">Edit Item</button>
+        </form>
         <form class="form-inline" action="delete-item.html" method="POST">
           <input type="hidden" name="id" value="${item.id}"/>
           <button type="submit" class="btn btn-danger btn-block">Remove Item</button>

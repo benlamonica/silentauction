@@ -10,9 +10,9 @@
         <table class="table table-condensed">
         <tr><th>Item</th><th>Amt</th></tr>
         <#list items as item>
-        <tr><td><a href="item.html?id=${item.id}">${item.name}</a></td><td>${item.highBidAmount}</td></tr>
+        <tr><td><a href="item.html?id=${item.id}">${item.name}</a></td><td>${item.highBidAmount?string.currency}</td></tr>
         </#list>
-        <tr class="success"><td>Total</td><td>${totalAmount}</td></tr>
+        <tr class="success"><td>Total</td><td>${totalAmount?string.currency}</td></tr>
         </table>
     </div>
     <#include "bootstrap-footer.ftl">

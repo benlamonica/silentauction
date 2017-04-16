@@ -19,11 +19,19 @@ public class User {
     private String email;
     private String passwordHash;
     private String name;
+    private String phone;
+    private boolean wantsSMS;
+    private boolean wantsEmail;
+    private boolean emailVerified;
 
-    public User(int id, String email, String name) {
+    public User(int id, String email, String name, String phone, boolean wantsSMS, boolean wantsEmail) {
         this.id = id;
         this.email = email;
         this.name = name;
+        this.phone = phone;
+        this.passwordHash="";
+        this.wantsEmail = wantsEmail;
+        this.wantsSMS = wantsSMS;
     }
     
     public User() { }
@@ -70,5 +78,60 @@ public class User {
         }
         
         return "";
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    private static final Pattern VALID_PHONE_NUMBER=Pattern.compile("\\+1\\d{10}");
+    public boolean wantsSMS() {
+        return wantsSMS && phone != null && VALID_PHONE_NUMBER.matcher(phone).matches();
+    }
+
+    public void setWantsSMS(boolean wantsSMS) {
+        this.wantsSMS = wantsSMS && email != null;
+    }
+
+    public boolean wantsEmail() {
+        return wantsEmail;
+    }
+
+    public void setWantsEmail(boolean wantsEmail) {
+        this.wantsEmail = wantsEmail;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + id;
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        User other = (User) obj;
+        if (id != other.id)
+            return false;
+        return true;
     }
 }
