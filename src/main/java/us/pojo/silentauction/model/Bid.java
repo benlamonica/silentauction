@@ -10,7 +10,7 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 @Entity
-public class Bid {
+public class Bid implements Comparable<Bid> {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -88,5 +88,13 @@ public class Bid {
         if (id != other.id)
             return false;
         return true;
+    }
+
+    @Override
+    public int compareTo(Bid o) {
+        if (o != null && o.bid != null) {
+            return o.bid.compareTo(bid);
+        }
+        return 1;
     }
 }

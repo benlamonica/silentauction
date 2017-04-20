@@ -18,7 +18,7 @@
                 <li><a href="report.html">Total Donations</a></li>
                 <li><a href="winners.html">Item Winners</a></li>
               </ul>
-              <form class="navbar-form navbar-left" action="login.html">
+              <form class="navbar-form navbar-left" action="/logout">
                 <button type="submit" class="btn btn-danger">Logout</button>
               </form>
             </div><!-- /.navbar-collapse -->

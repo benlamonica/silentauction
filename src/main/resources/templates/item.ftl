@@ -15,10 +15,10 @@
         <form class="form-inline" action="bid.html" method="POST">
         <input type="hidden" name="id" value="${item.id}"/>
           <div class="form-group">
-            <label class="sr-only" for="exampleInputAmount">Amount (in dollars)</label>
+            <label class="sr-only" for="bidAmount">Amount (numbers only)</label>
             <div class="input-group">
               <div class="input-group-addon">$</div>
-              <input type="text" pattern="[0-9]+" class="form-control" name="bidAmount" placeholder="Amount">
+              <input type="text" pattern="[0-9]{1,13}" class="form-control" name="bidAmount" placeholder="Amount (numbers only)">
             </div>
           </div>
           <button type="submit" class="btn btn-primary btn-block">Bid</button>
@@ -32,9 +32,9 @@
             <strong>Description:</strong><span id="#description"> ${item.description!""}</span>
         </p>
         <table class="table table-condensed">
-        <tr><th>Bidder</th><th>Amt</th><th>At</th></tr>
+        <tr><th>Bidder</th><th>Amt</th><th>At</th><th></th></tr>
         <#list item.bids as bid>
-        <tr ${bid?is_first?string("class=\"success\"", "")}><td>${bid.user.shortName!""}</td><td>${bid.bid?string.currency!""}</td><td>${bid.formattedBidTime}</td></tr>
+        <tr ${bid?is_first?string("class=\"success\"", "")}><td>${bid.user.shortName!""}</td><td>${bid.bid?string.currency!""}</td><td>${bid.formattedBidTime}</td><td><form class="form-inline" method="POST" action="delete-bid.html?itemId=${item.id}&bidId=${bid.id}"><button class="btn btn-danger">X</button></form></td></tr>
         </#list>
         </table>
         <form class="form-inline" action="edit-item.html" method="GET">

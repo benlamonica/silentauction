@@ -1,10 +1,15 @@
 package us.pojo.silentauction.controller;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.validator.routines.DoubleValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,9 +22,9 @@ import us.pojo.silentauction.model.Item;
 import us.pojo.silentauction.model.User;
 import us.pojo.silentauction.repository.BidRepository;
 import us.pojo.silentauction.repository.ItemRepository;
-import us.pojo.silentauction.repository.UserRepository;
 import us.pojo.silentauction.service.BiddingService;
 import us.pojo.silentauction.service.ImageService;
+import us.pojo.silentauction.service.UserDetailService;
 
 @Transactional
 @Controller
@@ -32,7 +37,10 @@ public class AuctionController {
     private ItemRepository items;
     
     @Autowired
-    private UserRepository users;
+    private UserDetailService userService;
+    
+    @Autowired
+    private AuthenticationManager authManager;
     
     @Autowired 
     private BidRepository bids;
@@ -43,16 +51,18 @@ public class AuctionController {
     private User currentUser;
     
     private User getCurrentUser() {
-        if (currentUser == null) {
-            currentUser = users.findUserByEmail("ben.lamonica@gmail.com");
-            if (currentUser == null) {
-                currentUser = new User(-1, "ben.lamonica@gmail.com", "Ben La Monica", "+16304539090", true, false);
-                currentUser = users.save(currentUser);
-            }
-        }
-        return currentUser;
+        return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping(value="/delete-bid.html")
+    public String deleteBid(@RequestParam(name="itemId") int itemId, @RequestParam("bidId") int bidId) {
+        Item item = items.findOne(itemId);
+        item.getBids().removeIf(b->b.getId() == bidId);
+        bids.delete(bidId);
+        return "redirect:/item.html?id="+itemId;
+    }
+    
     @GetMapping(value="/items.html")
     public ModelAndView getItems(@RequestParam(name="filter", required=false, defaultValue="not_set") String filter) {
         ModelAndView model = new ModelAndView("items");
@@ -86,23 +96,25 @@ public class AuctionController {
     public ModelAndView bid(@RequestParam(name="id", required=true) int id, @RequestParam(name="bidAmount", required=true) String bidAmountInput) {
         Double bidAmount = DoubleValidator.getInstance().validate(bidAmountInput);
         ModelAndView mav = new ModelAndView("item");
-        mav.addObject("currentUser", getCurrentUser());
+        Item item = items.findOne(id);
+        User user = getCurrentUser();
+        mav.addObject("currentUser", user);
         mav.addObject("navUrl", "items.html");
         mav.addObject("navIcon", "glyphicon-menu-left");
         mav.addObject("navText", "Items");
-
+        mav.addObject("item", item);
         if (bidAmount == null) {
             mav.addObject("errorMessage", String.format("'%s' is not a number. Bids must be numbers.", bidAmountInput));
         } else {
             AtomicReference<String> error = new AtomicReference<>();
-            Item item = biddingService.bid(id, bidAmount, error);
-            mav.addObject("item", item);
+            biddingService.bid(user, item, bidAmount, error);
             mav.addObject("errorMessage", error.get());
         }
 
         return mav;
     }
     
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value="/delete-item.html")
     public String deleteItem(@RequestParam(name="id", required=true) int id) {
         items.delete(id);
@@ -114,6 +126,34 @@ public class AuctionController {
         return "redirect:/items.html";
     }
 
+    @GetMapping("/create-account.html")
+    public String showCreateAccountPage() {
+        return "create-account";
+    }
+    
+    @PostMapping(value="/create-account.html")
+    public String createUser(@RequestParam("email") String email, @RequestParam("name") String name, 
+            @RequestParam("password") String password, @RequestParam("phone") String phone, 
+            @RequestParam(value="wantsEmail", required=false, defaultValue="false") boolean wantsEmail, 
+            @RequestParam(value="wantsSMS", required=false, defaultValue="false") boolean wantsSMS) {
+        User user = new User();
+        user.setEmail(email);
+        user.setName(name);
+        user.setPasswordHash(password);
+        user.setPhone(phone);
+        user.setWantsEmail(wantsEmail);
+        user.setWantsSms(wantsSMS);
+        user = userService.registerNewUser(user);
+        
+        // automatically log the user in after they've registered.
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user, password, user.getAuthorities());
+        authManager.authenticate(auth);
+        if(auth.isAuthenticated()) {
+            SecurityContextHolder.getContext().setAuthentication(auth);
+        }
+
+        return "redirect:/items.html";
+    }
     
     @GetMapping(value="/item.html")
     public ModelAndView getItem(@RequestParam(name="id", required=true) int id) {
@@ -126,6 +166,7 @@ public class AuctionController {
         return mav;
     }
     
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(value="/winners.html")
     public ModelAndView winners() {
         ModelAndView mav = new ModelAndView("winners");
@@ -152,18 +193,28 @@ public class AuctionController {
         return mav;
     }
     
+    private Optional<String> enforcePermission(User currentUser, Item item) {
+        if (!currentUser.isAdmin() && !item.getSeller().equals(currentUser)) {
+            return Optional.of("redirect:item.html?id=" + item.getId());
+        }
+        return Optional.empty();
+    }
+    
     @GetMapping(value="/edit-item.html")
     public ModelAndView editItem(@RequestParam(name="id", defaultValue="-1", required=false) int id) {
+        User currentUser = getCurrentUser();
+        Optional<String> view = Optional.empty();
         Item item;
         if (id == -1) {
             item = new Item();
             item.setId(-1);
-            item.setSeller(getCurrentUser());
+            item.setSeller(currentUser);
         } else {
             item = items.findOne(id);
+            view = enforcePermission(currentUser, item);
         }
         
-        ModelAndView mav = new ModelAndView("edit-item");
+        ModelAndView mav = new ModelAndView(view.orElse("edit-item"));
         mav.addObject("currentUser", getCurrentUser());
         mav.addObject("item", item);
         mav.addObject("saveText", id == -1 ? "Add" : "Save");
@@ -177,21 +228,24 @@ public class AuctionController {
     @PostMapping(value="/edit-item.html")
     public String saveItem(@RequestParam("item_picture") MultipartFile picture, @RequestParam("id") int id, @RequestParam("name") String name, @RequestParam("description") String description, @RequestParam("donor") String donor) {
         Item item;
+        User user = getCurrentUser();
+        Optional<String> view = Optional.empty();
         if (id != -1) {
            item = items.findOne(id); 
+           view = enforcePermission(currentUser, item);
         } else {
             item = new Item();
         }
-        
-        item.setName(name);
-        item.setDescription(description);
-        item.setDonor(donor);
-        User user = getCurrentUser();
-        
-        item.setSeller(user);
-        item = items.save(item);
-        images.save(item.getId(), picture);
-        return "redirect:/item.html?id="+item.getId();
+
+        if (!view.isPresent()) {
+            item.setName(name);
+            item.setDescription(description);
+            item.setDonor(donor);
+            item.setSeller(user);
+            item = items.save(item);
+            images.save(item.getId(), picture);
+        }
+        return view.orElse("redirect:/item.html?id="+item.getId());
     }
 
 }

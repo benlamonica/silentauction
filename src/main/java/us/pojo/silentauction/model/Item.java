@@ -1,7 +1,7 @@
 package us.pojo.silentauction.model;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.SortedSet;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -10,7 +10,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
+
+import org.hibernate.annotations.SortNatural;
 
 @Entity
 public class Item {
@@ -29,9 +30,9 @@ public class Item {
     
     private String donor;
 
+    @SortNatural
     @OneToMany(cascade={CascadeType.REMOVE})
-    @OrderBy("bid DESC")
-    private List<Bid> bids;
+    private SortedSet<Bid> bids;
 
     public int getId() {
         return id;
@@ -65,11 +66,11 @@ public class Item {
         this.seller = seller;
     }
 
-    public List<Bid> getBids() {
+    public SortedSet<Bid> getBids() {
         return bids;
     }
 
-    public void setBids(List<Bid> bids) {
+    public void setBids(SortedSet<Bid> bids) {
         this.bids = bids;
     }
 
@@ -94,7 +95,7 @@ public class Item {
     
     public Bid getHighBid() {
         if (bids != null && !bids.isEmpty()) {
-            return bids.get(0);
+            return bids.first();
         }
         return null;
     }

@@ -1,34 +1,74 @@
 package us.pojo.silentauction;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Arrays;
 
 import javax.annotation.PostConstruct;
 
-import org.opensaml.util.resource.ClasspathResource;
-import org.opensaml.util.resource.ResourceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StreamUtils;
+
+import us.pojo.silentauction.service.UserDetailService;
 
 @SpringBootApplication
 @EnableAutoConfiguration
 @Configuration
-public class App {
+@EnableWebSecurity
+public class App extends WebSecurityConfigurerAdapter {
     
     private static final Logger log = LoggerFactory.getLogger(App.class);
     
     @Value("${silentauction.asset-dir}")
     private String assetDir;
     
+    @Autowired
+    private UserDetailService userDetailsService;
+     
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+    }
+    
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+    
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.csrf().disable()
+            .authorizeRequests()
+                .antMatchers("/webjars/**", "/site.css", "/create-account.html", "/verify-email.html").permitAll()
+                .anyRequest().authenticated()
+                .and()
+            .formLogin()
+                .loginPage("/login.html")
+                .permitAll()
+                .and()
+            .logout()
+                .permitAll();
+    }
+    
+    /**
+     * sets up the external directories in preparation for running the first time
+     */
     @PostConstruct
     public void createDirs() {
         Arrays.asList(assetDir, assetDir+"images", assetDir+"images/thumbs").forEach(dir -> {
@@ -42,7 +82,7 @@ public class App {
         
         // copy the default image over
         try {
-            StreamUtils.copy(new ClasspathResource("/static/item.jpg").getInputStream(), new FileOutputStream(assetDir + "images/-1.jpg"));
+            StreamUtils.copy(new ClassPathResource("/static/item.jpg").getInputStream(), new FileOutputStream(assetDir + "images/-1.jpg"));
         } catch (Exception e) {
             log.warn("Unable to copy default item image.", e);
             e.printStackTrace();

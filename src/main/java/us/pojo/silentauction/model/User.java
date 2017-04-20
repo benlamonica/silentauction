@@ -1,8 +1,11 @@
 package us.pojo.silentauction.model;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -10,32 +13,49 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
 @Entity
 @Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "email" }) })
-public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class User implements UserDetails {
+    private static final long serialVersionUID = 1L;
+
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String email;
     private String passwordHash;
+
+    @Column(length=60)
     private String name;
     private String phone;
-    private boolean wantsSMS;
+    private boolean wantsSms;
     private boolean wantsEmail;
     private boolean emailVerified;
+    private boolean admin = false;
 
-    public User(int id, String email, String name, String phone, boolean wantsSMS, boolean wantsEmail) {
+    public User(int id, String email, String name, String phone, boolean wantsSMS, boolean wantsEmail, boolean isAdmin) {
         this.id = id;
         this.email = email;
         this.name = name;
         this.phone = phone;
         this.passwordHash="";
         this.wantsEmail = wantsEmail;
-        this.wantsSMS = wantsSMS;
+        this.wantsSms = wantsSMS;
+        this.admin = isAdmin;
     }
     
     public User() { }
     
+    public boolean isAdmin() {
+        return admin;
+    }
+
+    public void setAdmin(boolean admin) {
+        this.admin = admin;
+    }
+
     public int getId() {
         return id;
     }
@@ -88,17 +108,25 @@ public class User {
         this.phone = phone;
     }
 
+    public boolean wantsSms() {
+        return wantsSms;
+    }
+    
     private static final Pattern VALID_PHONE_NUMBER=Pattern.compile("\\+1\\d{10}");
-    public boolean wantsSMS() {
-        return wantsSMS && phone != null && VALID_PHONE_NUMBER.matcher(phone).matches();
+    public boolean canSendSms() {
+        return wantsSms && phone != null && VALID_PHONE_NUMBER.matcher(phone).matches();
     }
 
-    public void setWantsSMS(boolean wantsSMS) {
-        this.wantsSMS = wantsSMS && email != null;
+    public void setWantsSms(boolean wantsSMS) {
+        this.wantsSms = wantsSMS;
     }
 
     public boolean wantsEmail() {
         return wantsEmail;
+    }
+    
+    public boolean canSendEmail() {
+        return wantsEmail && emailVerified;
     }
 
     public void setWantsEmail(boolean wantsEmail) {
@@ -132,6 +160,44 @@ public class User {
         User other = (User) obj;
         if (id != other.id)
             return false;
+        return true;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        if (isAdmin()) {
+            return Arrays.asList(new SimpleGrantedAuthority("USER"), new SimpleGrantedAuthority("ADMIN"));
+        }
+        return Arrays.asList(new SimpleGrantedAuthority("USER"));
+    }
+
+    @Override
+    public String getPassword() {
+        return passwordHash;
+    }
+
+    @Override
+    public String getUsername() {
+        return email;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
         return true;
     }
 }

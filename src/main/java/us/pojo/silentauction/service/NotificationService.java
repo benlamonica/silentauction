@@ -74,12 +74,16 @@ public class NotificationService {
         if (oldHighBid != null && !oldHighBid.getUser().equals(newHighBid.getUser())) {
             User oldHighBidder = oldHighBid.getUser();
             
-            if (oldHighBidder.wantsSMS()) {
+            if (oldHighBidder.canSendSms()) {
                 sendSMS(item, oldHighBid, newHighBid);
-            } else if (oldHighBidder.wantsEmail()) {
+            } else {
+                log.info("SMS Outbid notification not requested by user.");
+            }
+            
+            if (oldHighBidder.canSendEmail()) {
                 sendEmail(item, oldHighBid, newHighBid);
             } else {
-                log.info("Outbid notification not requested by user.");
+                log.info("Email Outbid notification not requested by user.");
             }
         }
     }
