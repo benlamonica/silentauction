@@ -48,8 +48,6 @@ public class AuctionController {
     @Autowired
     private ImageService images;
     
-    private User currentUser;
-    
     private User getCurrentUser() {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
@@ -232,7 +230,7 @@ public class AuctionController {
         Optional<String> view = Optional.empty();
         if (id != -1) {
            item = items.findOne(id); 
-           view = enforcePermission(currentUser, item);
+           view = enforcePermission(getCurrentUser(), item);
         } else {
             item = new Item();
         }

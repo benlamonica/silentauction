@@ -16,10 +16,10 @@
                 <li><a href="items.html?filter=my_bids">My Bids</a></li>
                 <li><a href="items.html?filter=my_donations">My Donations</a></li>
                 <li><a href="report.html">Total Donations</a></li>
-                <li><a href="winners.html">Item Winners</a></li>
+                <#if currentUser.admin><li><a href="winners.html">Item Winners</a></li></#if>
               </ul>
               <form class="navbar-form navbar-left" action="/logout">
-                <button type="submit" class="btn btn-danger">Logout</button>
+                <button type="submit" class="btn btn-danger">Sign Out - ${(currentUser.shortName)!""}</button>
               </form>
             </div><!-- /.navbar-collapse -->
           </div><!-- /.container-fluid -->

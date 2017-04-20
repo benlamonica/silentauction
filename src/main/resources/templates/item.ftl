@@ -12,7 +12,7 @@
         <#if errorMessage??>
             <p class="warning">${errorMessage}</p>      
         </#if>
-        <form class="form-inline" action="bid.html" method="POST">
+        <form class="form" action="bid.html" method="POST">
         <input type="hidden" name="id" value="${item.id}"/>
           <div class="form-group">
             <label class="sr-only" for="bidAmount">Amount (numbers only)</label>
@@ -32,19 +32,23 @@
             <strong>Description:</strong><span id="#description"> ${item.description!""}</span>
         </p>
         <table class="table table-condensed">
-        <tr><th>Bidder</th><th>Amt</th><th>At</th><th></th></tr>
+        <tr><th>Bidder</th><th>Amt</th><th>At</th><#if currentUser.admin><th></th></#if></tr>
         <#list item.bids as bid>
-        <tr ${bid?is_first?string("class=\"success\"", "")}><td>${bid.user.shortName!""}</td><td>${bid.bid?string.currency!""}</td><td>${bid.formattedBidTime}</td><td><form class="form-inline" method="POST" action="delete-bid.html?itemId=${item.id}&bidId=${bid.id}"><button class="btn btn-danger">X</button></form></td></tr>
+        <tr ${bid?is_first?string("class=\"success\"", "")}><td>${bid.user.shortName!""}</td><td>${bid.bid?string.currency!""}</td><td>${bid.formattedBidTime}</td><#if currentUser.admin><td><form class="form-inline" method="POST" action="delete-bid.html?itemId=${item.id}&bidId=${bid.id}"><button class="btn btn-danger">X</button></form></td></#if></tr>
         </#list>
         </table>
-        <form class="form-inline" action="edit-item.html" method="GET">
+        <#if ((currentUser.admin) || (item.seller.equals(currentUser)))>
+        <form class="form" action="edit-item.html" method="GET">
           <input type="hidden" name="id" value="${item.id}"/>
           <button type="submit" class="btn btn-primary btn-block">Edit Item</button>
         </form>
-        <form class="form-inline" action="delete-item.html" method="POST">
+        </#if>
+        <#if currentUser.admin>
+        <form class="form" action="delete-item.html" method="POST">
           <input type="hidden" name="id" value="${item.id}"/>
           <button type="submit" class="btn btn-danger btn-block">Remove Item</button>
         </form>
+        </#if>
     </div>
     <#include "bootstrap-footer.ftl">
   </body>

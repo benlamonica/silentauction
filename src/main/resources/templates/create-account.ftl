@@ -13,7 +13,7 @@
   </head>
   <body>
     <div class="container">
-      <h4 class="text-center">Silent Auction Login</h4>
+      <h4 class="text-center">${action!"Create"} account</h4>
       <div id="error_message" class="alert alert-danger">
         <strong>Invalid Username or Password!</strong>
       </div>
@@ -23,14 +23,14 @@
           <input type="text" class="form-control" id="name" name="name" placeholder="Full Name">
           <label for="email">E-mail Address</label>
           <input type="email" class="form-control" id="email" name="email" placeholder="E-mail Address">
-          <label for="name">Phone</label>
+          <label for="name">Phone <small>(Optional - used to notify about bids)</small></label>
           <input type="phone" class="form-control" id="phone" name="phone" placeholder="###-###-####">
         </div>
         <div class="form-group">
           <label for="password">Password</label>
           <input type="password" class="form-control" id="password" name="password" placeholder="Password">
           <label for="password">Repeat Password</label>
-          <input type="password" class="form-control" id="password" name="password2" placeholder="Password">
+          <input type="password" class="form-control" id="password2" name="password2" placeholder="Password">
         </div>
         <div class="form-group">
           <label for="wantsEmail">Receive e-mail notifications of out bids</label>
@@ -47,6 +47,39 @@
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="/webjars/jquery/dist/jquery.min.js"></script>
     <script type="text/javascript">
+        function showError(msg) {
+            $("#error_message").html("<strong>"+msg+"</strong>").show();
+        }
+    
+        $("#submitButton").click(function(event) {
+            $("error_message").hide();
+        
+            if ($("#name").val().trim() == "") {
+                showError("Name must be entered.");
+                event.preventDefault();
+                return false;
+            }
+        
+            if (!/\w+@\w+\.\w+/.test($("#email").val().trim())) {
+                showError("Email must be entered and valid.");
+                event.preventDefault();
+                return false;
+            }
+
+            if ($("#password").val().trim().length < 6) {
+                showError("Password must be at least 6 characters long.");
+                event.preventDefault();
+                return false;
+            }
+
+            if ($("#password").val() != $("#password2").val()) {
+                showError("Password fields do not match.");
+                event.preventDefault();
+                return false;
+            }
+            
+            return true;
+        });
         if (window.location.href.indexOf("?error") == -1) {
             $("#error_message").hide();
         }
