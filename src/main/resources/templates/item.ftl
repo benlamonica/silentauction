@@ -18,7 +18,7 @@
             <label class="sr-only" for="bidAmount">Amount (numbers only)</label>
             <div class="input-group">
               <div class="input-group-addon">$</div>
-              <input type="text" pattern="[0-9]{1,13}" class="form-control" name="bidAmount" placeholder="Amount (numbers only)">
+              <input type="text" pattern="[0-9,.]{1,13}" class="form-control" name="bidAmount" placeholder="Amount (numbers only)">
             </div>
           </div>
           <button type="submit" class="btn btn-primary btn-block">Bid</button>

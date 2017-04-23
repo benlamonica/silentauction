@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.SortedSet;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -19,8 +20,10 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(length=512)
     private String name;
 
+    @Column(length=2048)
     private String description;
 
     private boolean isHidden;

@@ -97,7 +97,7 @@ public class User implements UserDetails {
             }
         }
         
-        return "";
+        return name;
     }
 
     public String getPhone() {
