@@ -318,7 +318,7 @@ public class AuctionController {
         return Optional.empty();
     }
     
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(value="/edit-item.html")
     public ModelAndView editItem(@RequestParam(name="id", defaultValue="-1", required=false) int id) {
         User currentUser = getCurrentUser();
@@ -341,7 +341,7 @@ public class AuctionController {
         return mav;
     }
     
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value="/edit-item.html")
     public String saveItem(@RequestParam("item_picture") MultipartFile picture, @RequestParam("id") int id, @RequestParam("name") String name, @RequestParam("description") String description, @RequestParam("donor") String donor) {
         Item item;
