@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -17,6 +18,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+@Cacheable
 @Entity
 @Table(uniqueConstraints = { @UniqueConstraint(columnNames = { "email" }) })
 public class User implements UserDetails {
@@ -30,6 +32,10 @@ public class User implements UserDetails {
     @Column(length=60)
     private String name;
     private String phone;
+    
+    @Column(length=36)
+    private String verifyToken;
+    
     private boolean wantsSms;
     private boolean wantsEmail;
     private boolean emailVerified;
@@ -58,6 +64,14 @@ public class User implements UserDetails {
 
     public int getId() {
         return id;
+    }
+    
+    public String getVerifyToken() {
+        return verifyToken;
+    }
+
+    public void setVerifyToken(String verifyToken) {
+        this.verifyToken = verifyToken;
     }
 
     public void setId(int id) {
@@ -200,4 +214,10 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    @Override
+    public String toString() {
+        return email;
+    }
+    
 }

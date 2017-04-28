@@ -9,6 +9,9 @@
     <div class="container">
         <#include "nav.ftl">
         <p class="text-center"><mark>${(item.highBidder.shortName?ensure_ends_with("'s"))!} High Bid: ${item.highBidAmount?string.currency!"$0"}</mark></p>
+        <#if errorMessage??>
+            <p class="warning">${errorMessage}</p>      
+        </#if>
         <form class="form" action="bid.html" method="POST">
         <input type="hidden" name="id" value="${item.id}"/>
           <div class="form-group">
@@ -34,7 +37,7 @@
         <tr ${bid?is_first?string("class=\"success\"", "")}><td>${bid.user.shortName!""}</td><td>${bid.bid?string.currency!""}</td><td>${bid.formattedBidTime}</td><#if currentUser.admin><td><form class="form-inline" method="POST" action="delete-bid.html?itemId=${item.id}&bidId=${bid.id}"><button class="btn btn-danger">X</button></form></td></#if></tr>
         </#list>
         </table>
-        <#if (currentUser.admin)>
+        <#if ((currentUser.admin) || (item.seller.equals(currentUser)))>
         <form class="form" action="edit-item.html" method="GET">
           <input type="hidden" name="id" value="${item.id}"/>
           <button type="submit" class="btn btn-primary btn-block">Edit Item</button>

@@ -3,6 +3,7 @@ package us.pojo.silentauction.model;
 import java.util.Optional;
 import java.util.SortedSet;
 
+import javax.persistence.Cacheable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,8 +13,11 @@ import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.SortNatural;
 
+@Cacheable
 @Entity
 public class Item {
     @Id
@@ -33,6 +37,7 @@ public class Item {
     
     private String donor;
 
+    @Cache(usage=CacheConcurrencyStrategy.READ_WRITE)
     @SortNatural
     @OneToMany(cascade={CascadeType.REMOVE})
     private SortedSet<Bid> bids;
@@ -137,4 +142,11 @@ public class Item {
             return false;
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "Item [id=" + id + ", name=" + name + ", donor=" + donor + "]";
+    }
+    
+    
 }

@@ -14,7 +14,7 @@ import us.pojo.silentauction.service.NotificationService;
 @Ignore
 public class NotificationServiceIT {
     
-    public NotificationService target = new NotificationService();
+    public NotificationService target = new NotificationService("http://auction.pojo.us:11111", "ben.lamonica@icloud.com");
     
     @Test
     public void shouldSendEmailVerificationRequest() {

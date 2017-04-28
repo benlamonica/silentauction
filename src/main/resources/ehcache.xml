@@ -1,0 +1,41 @@
+<ehcache updateCheck="false">
+
+    <cache name="org.hibernate.cache.internal.StandardQueryCache"
+       maxElementsInMemory="10000"
+       eternal="true"
+       memoryStoreEvictionPolicy="LFU">
+    </cache>
+
+    <cache name="us.pojo.silentauction.model.Auction"
+       maxElementsInMemory="100"
+       eternal="true"
+       memoryStoreEvictionPolicy="LFU">
+    </cache>
+
+    <cache name="us.pojo.silentauction.model.User"
+       maxElementsInMemory="10000"
+       eternal="true"
+       memoryStoreEvictionPolicy="LFU">
+    </cache>
+
+    <cache name="us.pojo.silentauction.model.Item"
+       maxElementsInMemory="10000"
+       eternal="true"
+       memoryStoreEvictionPolicy="LFU">
+    </cache>
+
+    <cache name="us.pojo.silentauction.model.Bid"
+       maxElementsInMemory="100000"
+       eternal="true"
+       memoryStoreEvictionPolicy="LFU">
+    </cache>
+
+    <defaultCache
+        maxElementsInMemory="0"
+        eternal="false"
+        timeToIdleSeconds="0"
+        timeToLiveSeconds="0"
+        overflowToDisk="false"
+        diskPersistent="false"
+    />
+</ehcache>

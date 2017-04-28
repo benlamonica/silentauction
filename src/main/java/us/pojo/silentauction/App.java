@@ -3,6 +3,7 @@ package us.pojo.silentauction;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
 
@@ -16,8 +17,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -31,13 +32,17 @@ import us.pojo.silentauction.service.UserDetailService;
 @EnableAutoConfiguration
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class App extends WebSecurityConfigurerAdapter {
     
     private static final Logger log = LoggerFactory.getLogger(App.class);
     
     @Value("${silentauction.asset-dir}")
     private String assetDir;
-    
+
+    @Value("${silentauction.secret-key}")
+    private String secretKey;
+
     @Autowired
     private UserDetailService userDetailsService;
      
@@ -55,8 +60,13 @@ public class App extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
             .authorizeRequests()
-                .antMatchers("/webjars/**", "/site.css", "/create-account.html", "/verify-email.html").permitAll()
+                .antMatchers("/webjars/**", "/site.css", "/create-account.html", "/login.html").permitAll()
                 .anyRequest().authenticated()
+                .and()
+            .rememberMe()
+                .alwaysRemember(true)
+                .tokenValiditySeconds((int) TimeUnit.DAYS.toSeconds(14))
+                .key(secretKey)
                 .and()
             .formLogin()
                 .loginPage("/login.html")

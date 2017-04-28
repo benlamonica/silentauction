@@ -3,12 +3,14 @@ package us.pojo.silentauction.model;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import javax.persistence.Cacheable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
+@Cacheable
 @Entity
 public class Bid implements Comparable<Bid> {
     
@@ -25,6 +27,11 @@ public class Bid implements Comparable<Bid> {
 
     public Bid() { }
     
+    @Override
+    public String toString() {
+        return "Bid [id=" + id + ", user=" + user + ", bid=" + bid + ", bidTime=" + bidTime + "]";
+    }
+
     public Bid(User user, Double bid) {
         this.user = user;
         this.bid = bid;

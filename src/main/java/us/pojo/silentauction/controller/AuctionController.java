@@ -4,7 +4,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.DoubleValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,18 +21,23 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
+import us.pojo.silentauction.model.Auction;
 import us.pojo.silentauction.model.Item;
 import us.pojo.silentauction.model.User;
+import us.pojo.silentauction.repository.AuctionRepository;
 import us.pojo.silentauction.repository.BidRepository;
 import us.pojo.silentauction.repository.ItemRepository;
 import us.pojo.silentauction.service.BiddingService;
 import us.pojo.silentauction.service.ImageService;
+import us.pojo.silentauction.service.NotificationService;
 import us.pojo.silentauction.service.UserDetailService;
 
 @Transactional
 @Controller
 public class AuctionController {
 
+    private static final Logger log = LoggerFactory.getLogger(AuctionController.class);
+    
     @Autowired
     private BiddingService biddingService;
     
@@ -38,6 +46,12 @@ public class AuctionController {
     
     @Autowired
     private UserDetailService userService;
+    
+    @Autowired
+    private NotificationService notificationSerivce;;
+
+    @Autowired
+    private AuctionRepository auctions;
     
     @Autowired
     private AuthenticationManager authManager;
@@ -52,11 +66,14 @@ public class AuctionController {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value="/delete-bid.html")
     public String deleteBid(@RequestParam(name="itemId") int itemId, @RequestParam("bidId") int bidId) {
         Item item = items.findOne(itemId);
-        item.getBids().removeIf(b->b.getId() == bidId);
+        item.getBids().removeIf(bid->{
+            log.info("{} deleted {}", getCurrentUser(), bid);
+            return bid.getId() == bidId;   
+        });
         bids.delete(bidId);
         return "redirect:/item.html?id="+itemId;
     }
@@ -66,14 +83,19 @@ public class AuctionController {
         ModelAndView model = new ModelAndView("items");
         List<Item> results;
         String viewName;
+        User currentUser = getCurrentUser();
         switch (filter) {
+        case "no_bids":
+            results = items.findItemsWithNoBid();
+            viewName = "Items with no bids yet";
+            break;
         case "my_bids":
-                results = items.findItemsByBidder(getCurrentUser());
+                results = items.findItemsByBidder(currentUser);
                 viewName = "Items that I've bid on";
                 break;
         case "my_donations":
                 viewName = "Items that I've donated";
-                results = items.findItemsBySeller(getCurrentUser());
+                results = items.findItemsBySeller(currentUser);
                 break;
         default:
                 viewName = "All Items";
@@ -81,12 +103,22 @@ public class AuctionController {
                 break;
         }
         model.addObject("viewName", viewName);
-        model.addObject("currentUser", getCurrentUser());
         model.addObject("items", results);
-        model.addObject("navUrl", "edit-item.html");
-        model.addObject("navIcon", "glyphicon-plus");
-        model.addObject("navText", "Add Item");
+        if (currentUser.isAdmin()) {
+            model.addObject("navUrl", "edit-item.html");
+            model.addObject("navIcon", "glyphicon-plus");
+            model.addObject("navText", "Add Item");
+        } else {
+            defaultNav(model);
+        }
         return model;
+    }
+
+    private void defaultNav(ModelAndView model) {
+        model.addObject("currentUser", getCurrentUser());
+        model.addObject("navUrl", "items.html");
+        model.addObject("navIcon", "glyphicon-th");
+        model.addObject("navText", "Items");
     }
     
     @Transactional
@@ -96,26 +128,25 @@ public class AuctionController {
         ModelAndView mav = new ModelAndView("item");
         Item item = items.findOne(id);
         User user = getCurrentUser();
-        mav.addObject("currentUser", user);
-        mav.addObject("navUrl", "items.html");
-        mav.addObject("navIcon", "glyphicon-menu-left");
-        mav.addObject("navText", "Items");
+        defaultNav(mav);
         mav.addObject("item", item);
         if (bidAmount == null) {
-            mav.addObject("errorMessage", String.format("'%s' is not a number. Bids must be numbers.", bidAmountInput));
+            mav.addObject("errMsg", String.format("'%s' is not a number. Bids must be numbers.", bidAmountInput));
         } else {
             AtomicReference<String> error = new AtomicReference<>();
             biddingService.bid(user, item, bidAmount, error);
-            mav.addObject("errorMessage", error.get());
+            mav.addObject("errMsg", error.get());
         }
 
         return mav;
     }
     
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value="/delete-item.html")
     public String deleteItem(@RequestParam(name="id", required=true) int id) {
-        items.delete(id);
+        Item item = items.findOne(id);
+        log.info("{} deleted {}");
+        items.delete(item);
         return "redirect:/items.html";
     }
 
@@ -126,8 +157,95 @@ public class AuctionController {
 
     @GetMapping("/create-account.html")
     public String showCreateAccountPage() {
-        return "create-account";
+        return "edit-account";
     }
+
+    @GetMapping("/edit-account.html")
+    public ModelAndView editAccountPage() {
+        ModelAndView mav = new ModelAndView("edit-account");
+        mav.addObject("action", "edit");
+        mav.addObject("currentUser", getCurrentUser());
+        return mav;
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/add-admin.html")
+    public ModelAndView addAdmin(@RequestParam("email") String email) {
+        boolean success = userService.setUserAsAdmin(email, true);
+        ModelAndView mav = getItems("not_set");
+        if (success) {
+            mav.addObject("msg", String.format("%s is now an admin.", email));
+        } else {
+            mav.addObject("errMsg", String.format("Failed to make %s an admin.", email));
+        }
+        return mav;
+    }
+    
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/remove-admin.html")
+    public ModelAndView removeAdmin(@RequestParam("email") String email) {
+        boolean success = userService.setUserAsAdmin(email, false);
+        ModelAndView mav = getItems("not_set");
+        if (success) {
+            mav.addObject("msg", String.format("%s is no longer an admin.", email));
+        } else {
+            mav.addObject("errMsg", String.format("Failed to remove admin from %s.", email));
+        }
+        return mav;
+    }
+    
+    @GetMapping("/validate-email.html")
+    public ModelAndView validateEmailAddress(@RequestParam(name="token") String token) {
+        ModelAndView mav = getItems("not_set");
+        User user = getCurrentUser();
+        if (userService.markUserAsVerified(user, token)) {
+            mav.addObject("msg", "Email address verified.");
+        } else {
+            mav.addObject("errMsg", "Invalid Token, e-mail address not verified.");
+        }
+        refreshUserInSecurityContext(userService.getUser(user.getId()));
+        return mav;
+    }
+    
+    @GetMapping("/resend-validation-email.html")
+    public ModelAndView resendValidation() {
+        User user = getCurrentUser();
+        userService.updateVerifyToken(user);
+        notificationSerivce.sendVerificationEmail(user);
+        ModelAndView mav = editAccountPage();
+        mav.addObject("msg", "Verification Email Re-sent");
+        return mav;
+    }
+
+    @GetMapping(value={"/auction.html", "/about.html"})
+    public ModelAndView getAuction() {
+        Auction auction = auctions.findOne(1);
+        ModelAndView mav = new ModelAndView("auction");
+        mav.addObject("auction", auction);
+        defaultNav(mav);
+        return mav;
+    }
+    
+    @PostMapping(value="/edit-account.html")
+    public String editUser(@RequestParam("email") String email, @RequestParam("name") String name, 
+            @RequestParam("phone") String phone, @RequestParam("password") String password,
+            @RequestParam(value="wantsEmail", required=false, defaultValue="false") boolean wantsEmail, 
+            @RequestParam(value="wantsSMS", required=false, defaultValue="false") boolean wantsSMS) {
+
+        User user = new User();
+        user.setEmail(email);
+        user.setName(name);
+        user.setPhone(phone);
+        user.setPasswordHash(password);
+        user.setWantsEmail(wantsEmail);
+        user.setWantsSms(wantsSMS);
+        user = userService.modifyUser(getCurrentUser(), user);
+
+        refreshUserInSecurityContext(user);
+
+        return "redirect:/items.html?msg=User profile saved.";
+    }
+
     
     @PostMapping(value="/create-account.html")
     public String createUser(@RequestParam("email") String email, @RequestParam("name") String name, 
@@ -142,38 +260,43 @@ public class AuctionController {
         user.setWantsEmail(wantsEmail);
         user.setWantsSms(wantsSMS);
         user = userService.registerNewUser(user);
-        
-        // automatically log the user in after they've registered.
+
+        addUserToSecurityContext(user, password);
+
+        return "redirect:/items.html";
+    }
+    
+    private void refreshUserInSecurityContext(User user) {
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user, user.getPassword(), user.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+    }
+    
+    private void addUserToSecurityContext(User user, String password) {
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user, password, user.getAuthorities());
         authManager.authenticate(auth);
         if(auth.isAuthenticated()) {
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
-
-        return "redirect:/items.html";
     }
     
     @GetMapping(value="/item.html")
-    public ModelAndView getItem(@RequestParam(name="id", required=true) int id) {
+    public ModelAndView getItem(@RequestParam(name="id", required=true) int id, @RequestParam(name="err-msg", required=false) String errMsg) {
         ModelAndView mav = new ModelAndView("item");
-        mav.addObject("currentUser", getCurrentUser());
+        defaultNav(mav);
         mav.addObject("item", items.findOne(id));
-        mav.addObject("navUrl", "items.html");
-        mav.addObject("navIcon", "glyphicon-menu-left");
-        mav.addObject("navText", "Items");
+        if (StringUtils.isNotBlank(errMsg)) {
+            mav.addObject("errMsg", errMsg);
+        }
         return mav;
     }
     
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(value="/winners.html")
     public ModelAndView winners() {
         ModelAndView mav = new ModelAndView("winners");
         List<Item> allItems = items.findAll();
-        mav.addObject("currentUser", getCurrentUser());
         mav.addObject("items", allItems);
-        mav.addObject("navUrl", "items.html");
-        mav.addObject("navIcon", "glyphicon-menu-left");
-        mav.addObject("navText", "Items");
+        defaultNav(mav);
         return mav;
     }
     
@@ -182,12 +305,9 @@ public class AuctionController {
         ModelAndView mav = new ModelAndView("report");
         List<Item> allItems = items.findAll();
         Double total = allItems.stream().map(i->i.getHighBidAmount()).reduce(0.0, (a,b) -> a+b);
-        mav.addObject("currentUser", getCurrentUser());
         mav.addObject("items", allItems);
         mav.addObject("totalAmount", total);
-        mav.addObject("navUrl", "items.html");
-        mav.addObject("navIcon", "glyphicon-menu-left");
-        mav.addObject("navText", "Items");
+        defaultNav(mav);
         return mav;
     }
     
@@ -198,6 +318,7 @@ public class AuctionController {
         return Optional.empty();
     }
     
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(value="/edit-item.html")
     public ModelAndView editItem(@RequestParam(name="id", defaultValue="-1", required=false) int id) {
         User currentUser = getCurrentUser();
@@ -213,16 +334,14 @@ public class AuctionController {
         }
         
         ModelAndView mav = new ModelAndView(view.orElse("edit-item"));
-        mav.addObject("currentUser", getCurrentUser());
         mav.addObject("item", item);
         mav.addObject("saveText", id == -1 ? "Add" : "Save");
         mav.addObject("showRemoveButton", true);
-        mav.addObject("navUrl", "items.html");
-        mav.addObject("navIcon", "glyphicon-menu-left");
-        mav.addObject("navText", "Items");
+        defaultNav(mav);
         return mav;
     }
     
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value="/edit-item.html")
     public String saveItem(@RequestParam("item_picture") MultipartFile picture, @RequestParam("id") int id, @RequestParam("name") String name, @RequestParam("description") String description, @RequestParam("donor") String donor) {
         Item item;

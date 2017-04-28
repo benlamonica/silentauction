@@ -7,6 +7,7 @@ import java.util.concurrent.ForkJoinPool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceAsync;
@@ -37,8 +38,11 @@ public class NotificationService {
     private AmazonSNS snsClient = AmazonSNSClientBuilder.defaultClient();
     private AmazonSimpleEmailServiceAsync sesClient = AmazonSimpleEmailServiceAsyncClientBuilder.defaultClient();
     private Map<String, MessageAttributeValue> smsAttributes = new HashMap<String, MessageAttributeValue>();
-
-    public NotificationService() {
+    private final String url;
+    private final String senderEmail;
+    public NotificationService(@Value("${silentauction.external-url}") String url, @Value("${silentauction.sender-email}") String senderEmail) {
+        this.url = url;
+        this.senderEmail = senderEmail;
         smsAttributes.put("AWS.SNS.SMS.MaxPrice", new MessageAttributeValue()
                 .withStringValue("0.01") //Sets the max price to 0.50 USD.
                 .withDataType("Number"));
@@ -68,6 +72,23 @@ public class NotificationService {
     
     public boolean isEmailVerified(String email) {
         return "success".equals(getEmailVerificationStatus(email));
+    }
+    
+    public void sendVerificationEmail(User user) {
+        // Create the subject and body of the message.
+        Content subject = new Content().withData(String.format("Silent Auction E-mail Verification"));
+        Content textBody = new Content().withData(String.format("Hello %s,\n\nThank you for signing up for the silent auction. In order to receive e-mail alerts of outbids and items won, please verify your e-mail by clicking this link: %s/validate-email.html?token=%s", user.getShortName(), url, user.getVerifyToken())); 
+        Body body = new Body().withText(textBody);
+        
+        // Create a message with the specified subject and body.
+        Message message = new Message().withSubject(subject).withBody(body);
+        
+        Destination destination = new Destination().withToAddresses(user.getEmail());
+        
+        // Assemble the email.
+        SendEmailRequest request = new SendEmailRequest().withSource(senderEmail).withDestination(destination).withMessage(message);
+        SendEmailResult result = sesClient.sendEmail(request);
+        log.info("Email message was sent to SES {}", result);
     }
     
     public void outbid(Item item, Bid oldHighBid, Bid newHighBid) {
@@ -105,16 +126,16 @@ public class NotificationService {
             double diff = getDiff(oldHighBid, newHighBid);
 
             // Create the subject and body of the message.
-            Content subject = new Content().withData(String.format("You were outbid by $%.2f on %s", diff, item.getName()));
-            Content textBody = new Content().withData(String.format("You were outbid by $%.2f on %s.\nIncrease your bid at http://auction.pojo.us:11111/item.html?id=%d", diff, item.getName(), item.getId())); 
-            Content htmlBody = new Content().withData(String.format("<h1>You were outbid by $%.2f on %s.<br/><a href=\"http://auction.pojo.us:11111/item.html?id=%d\">Increase Your Bid</a></h1>", diff, item.getName(), item.getId())); 
+            Content subject = new Content().withData(String.format("Outbid on %s", item.getName()));
+            Content textBody = new Content().withData(String.format("%s outbid you by $%.2f on %s.\nIncrease your bid at %s/item.html?id=%d", newHighBid.getUser().getShortName(), diff, item.getName(), url, item.getId())); 
+            Content htmlBody = new Content().withData(String.format("<h1>%s outbid you by $%.2f on %s.<br/><a href=\"%s/item.html?id=%d\">Increase Your Bid</a></h1>", newHighBid.getUser().getShortName(), diff, item.getName(), url, item.getId())); 
             Body body = new Body().withText(textBody).withHtml(htmlBody);
             
             // Create a message with the specified subject and body.
             Message message = new Message().withSubject(subject).withBody(body);
             
             // Assemble the email.
-            SendEmailRequest request = new SendEmailRequest().withSource("ben.lamonica@icloud.com").withDestination(destination).withMessage(message);
+            SendEmailRequest request = new SendEmailRequest().withSource(senderEmail).withDestination(destination).withMessage(message);
             SendEmailResult result = sesClient.sendEmail(request);
             log.info("Email message was sent to SES {}", result);
         });
@@ -123,7 +144,7 @@ public class NotificationService {
     
     private void sendSMS(Item item, Bid oldHighBid, Bid newHighBid) {
         double diff = getDiff(oldHighBid, newHighBid);
-        String message = String.format("You've been outbid by $%.2f on %s! Bid again http://auction.pojo.us:11111/item.html?id=%d", diff, item.getName(), item.getId());
+        String message = String.format("%s outbid you by $%.2f on %s! Bid again %s/item.html?id=%d", newHighBid.getUser().getShortName(), diff, item.getName(), url, item.getId());
 
         ForkJoinPool.commonPool().submit(()->{
         PublishResult result = snsClient.publish(new PublishRequest()
