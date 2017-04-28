@@ -28,6 +28,11 @@
             </div><!-- /.navbar-collapse -->
           </div><!-- /.container-fluid -->
         </nav>
+        <#if auction?? && !auction.auctionClosed>
+        <div class="alert">Auction will end in ${auction.timeLeft}!</div>
+        <#elsif auction?? && auction.auctionClosed>
+        <div class="alert">Auction has ended. Bidding has been completed! Please contact ${auction.organizer} to submit donations.</div>
+        </#if>
         <#if (msg!"") != ""> 
         <div class="alert alert-success">
           <strong>${msg}</strong>

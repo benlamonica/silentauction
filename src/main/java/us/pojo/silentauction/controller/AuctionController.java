@@ -66,7 +66,7 @@ public class AuctionController {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
-//    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value="/delete-bid.html")
     public String deleteBid(@RequestParam(name="itemId") int itemId, @RequestParam("bidId") int bidId) {
         Item item = items.findOne(itemId);
@@ -108,6 +108,8 @@ public class AuctionController {
             model.addObject("navUrl", "edit-item.html");
             model.addObject("navIcon", "glyphicon-plus");
             model.addObject("navText", "Add Item");
+            model.addObject("currentUser", getCurrentUser());
+            model.addObject("auction", auctions.findOne(1));
         } else {
             defaultNav(model);
         }
@@ -119,6 +121,7 @@ public class AuctionController {
         model.addObject("navUrl", "items.html");
         model.addObject("navIcon", "glyphicon-th");
         model.addObject("navText", "Items");
+        model.addObject("auction", auctions.findOne(1));
     }
     
     @Transactional
@@ -141,11 +144,11 @@ public class AuctionController {
         return mav;
     }
     
-//    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value="/delete-item.html")
     public String deleteItem(@RequestParam(name="id", required=true) int id) {
         Item item = items.findOne(id);
-        log.info("{} deleted {}");
+        log.info("{} deleted {}", getCurrentUser(), item);
         items.delete(item);
         return "redirect:/items.html";
     }
@@ -290,7 +293,7 @@ public class AuctionController {
         return mav;
     }
     
-//    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(value="/winners.html")
     public ModelAndView winners() {
         ModelAndView mav = new ModelAndView("winners");
@@ -318,7 +321,7 @@ public class AuctionController {
         return Optional.empty();
     }
     
-//    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(value="/edit-item.html")
     public ModelAndView editItem(@RequestParam(name="id", defaultValue="-1", required=false) int id) {
         User currentUser = getCurrentUser();
@@ -341,7 +344,7 @@ public class AuctionController {
         return mav;
     }
     
-//    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value="/edit-item.html")
     public String saveItem(@RequestParam("item_picture") MultipartFile picture, @RequestParam("id") int id, @RequestParam("name") String name, @RequestParam("description") String description, @RequestParam("donor") String donor) {
         Item item;
