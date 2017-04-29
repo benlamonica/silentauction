@@ -1,5 +1,11 @@
 <ehcache updateCheck="false">
 
+    <cache name="org.hibernate.cache.spi.UpdateTimestampsCache"
+       maxElementsInMemory="10000"
+       eternal="true"
+       memoryStoreEvictionPolicy="LFU">
+    </cache>
+
     <cache name="org.hibernate.cache.internal.StandardQueryCache"
        maxElementsInMemory="10000"
        eternal="true"
