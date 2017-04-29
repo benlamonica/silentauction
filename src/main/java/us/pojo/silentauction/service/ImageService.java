@@ -21,7 +21,7 @@ public class ImageService {
     @Value("${silentauction.asset-dir}")
     private String assetDir;
     
-    public void save(int id, MultipartFile file) {
+    public void save(String id, MultipartFile file) {
         try {
             if (!file.isEmpty()) {
                 String imageFilename = assetDir + "images/" + id + ".jpg";

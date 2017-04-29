@@ -25,7 +25,7 @@
         <p>
             <strong>Donor:</strong> <span id="#donor">${item.donor!""}</span>
         </p>
-        <p->
+        <p>
             <strong>Description:</strong><span id="#description"> ${item.description!""}</span>
         </p>
         <table class="table table-condensed">

@@ -1,6 +1,7 @@
 package us.pojo.silentauction.model;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 import javax.persistence.Cacheable;
@@ -23,6 +24,8 @@ public class Auction {
     
     private String organizer;
     
+    private String organizerEmail;
+    
     private LocalDateTime ends;
 
     public int getId() {
@@ -31,6 +34,14 @@ public class Auction {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getOrganizerEmail() {
+        return organizerEmail;
+    }
+
+    public void setOrganizerEmail(String organizerEmail) {
+        this.organizerEmail = organizerEmail;
     }
 
     public String getOrganizer() {
@@ -59,6 +70,11 @@ public class Auction {
 
     public LocalDateTime getEnds() {
         return ends;
+    }
+    
+    private static final DateTimeFormatter df = DateTimeFormatter.ofPattern("MM/dd/yyyy h:mm a");
+    public String getEndDate() {
+        return ends.format(df);
     }
 
     public void setEnds(LocalDateTime ends) {

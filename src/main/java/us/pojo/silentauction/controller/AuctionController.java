@@ -1,5 +1,6 @@
 package us.pojo.silentauction.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -9,6 +10,7 @@ import org.apache.commons.validator.routines.DoubleValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -222,11 +224,36 @@ public class AuctionController {
 
     @GetMapping(value={"/auction.html", "/about.html"})
     public ModelAndView getAuction() {
-        Auction auction = auctions.findOne(1);
         ModelAndView mav = new ModelAndView("auction");
-        mav.addObject("auction", auction);
         defaultNav(mav);
         return mav;
+    }
+    
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(value="/edit-auction.html")
+    public ModelAndView editAuction() {
+        ModelAndView mav = new ModelAndView("edit-auction");
+        defaultNav(mav);
+        return mav;
+    }
+    
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping(value="/edit-auction.html")
+    public String saveAuction(@RequestParam("auction_picture") MultipartFile picture, @RequestParam("name") String name, @RequestParam("description") String description, @DateTimeFormat(pattern="MM/dd/yyyy h:mm a") @RequestParam("endsAt") LocalDateTime endsAt, @RequestParam("organizer") String organizer, @RequestParam("organizerEmail") String organizerEmail) {
+        Auction auction = auctions.findOne(1);
+        if (auction == null) {
+            auction = new Auction();
+        }
+        
+        auction.setDescription(description);
+        auction.setName(name);
+        auction.setEnds(endsAt);
+        auction.setOrganizer(organizer);
+        auction.setOrganizerEmail(organizerEmail);
+        images.save("auction", picture);
+        auctions.save(auction);
+
+        return "redirect:/auction.html";
     }
     
     @PostMapping(value="/edit-account.html")
@@ -266,7 +293,7 @@ public class AuctionController {
 
         addUserToSecurityContext(user, password);
 
-        return "redirect:/items.html";
+        return "redirect:/about.html";
     }
     
     private void refreshUserInSecurityContext(User user) {
@@ -307,7 +334,7 @@ public class AuctionController {
     public ModelAndView report() {
         ModelAndView mav = new ModelAndView("report");
         List<Item> allItems = items.findAll();
-        Double total = allItems.stream().map(i->i.getHighBidAmount()).reduce(0.0, (a,b) -> a+b);
+        Double total = allItems.stream().map(Item::getHighBidAmount).reduce(0.0, (a,b) -> a+b);
         mav.addObject("items", allItems);
         mav.addObject("totalAmount", total);
         defaultNav(mav);
@@ -363,7 +390,7 @@ public class AuctionController {
             item.setDonor(donor);
             item.setSeller(user);
             item = items.save(item);
-            images.save(item.getId(), picture);
+            images.save(String.valueOf(item.getId()), picture);
         }
         return view.orElse("redirect:/item.html?id="+item.getId());
     }

@@ -20,17 +20,18 @@
                 <li><a href="items.html?filter=no_bids">No Bid Items</a></li>
                 <li><a href="report.html">Total Donations</a></li>
                 <#if currentUser?? && currentUser.admin><li><a href="winners.html">Item Winners</a></li></#if>
+                <li><a href="about.html">About this auction</a></li>
                 <li><a href="edit-account.html">Edit Account</a></li>
               </ul>
               <form class="navbar-form navbar-left" action="/logout">
                 <button type="submit" class="btn btn-danger">Sign Out - ${(currentUser.shortName)!""}</button>
               </form>
             </div><!-- /.navbar-collapse -->
+            <div class="text-center" style="color: #3c763d"><strong>Auction will end in ${auction.timeLeft}!</strong></div>
           </div><!-- /.container-fluid -->
         </nav>
         <#if auction?? && !auction.auctionClosed>
-        <div class="alert">Auction will end in ${auction.timeLeft}!</div>
-        <#elsif auction?? && auction.auctionClosed>
+        <#elseif auction?? && auction.auctionClosed>
         <div class="alert">Auction has ended. Bidding has been completed! Please contact ${auction.organizer} to submit donations.</div>
         </#if>
         <#if (msg!"") != ""> 
