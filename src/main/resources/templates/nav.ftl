@@ -27,13 +27,13 @@
                 <button type="submit" class="btn btn-danger">Sign Out - ${(currentUser.shortName)!""}</button>
               </form>
             </div><!-- /.navbar-collapse -->
-            <div class="text-center" style="color: #3c763d"><strong>Auction will end in ${auction.timeLeft}!</strong></div>
+            <#if auction?? && !auction.auctionClosed>
+                <div class="text-center" style="color: #3c763d"><strong>Auction will end in ${(auction.timeLeft)}!</strong></div>
+            <#elseif auction?? && auction.auctionClosed>
+                <div class="alert">Auction has ended. Bidding has been completed! Please contact <a href="mailto:${(auction.organizerEmail)}">${(auction.organizer)}</a> to submit donations.</div>
+            </#if>
           </div><!-- /.container-fluid -->
         </nav>
-        <#if auction?? && !auction.auctionClosed>
-        <#elseif auction?? && auction.auctionClosed>
-        <div class="alert">Auction has ended. Bidding has been completed! Please contact ${auction.organizer} to submit donations.</div>
-        </#if>
         <#if (msg!"") != ""> 
         <div class="alert alert-success">
           <strong>${msg}</strong>
