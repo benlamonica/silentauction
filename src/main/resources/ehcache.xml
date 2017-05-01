@@ -30,6 +30,12 @@
        memoryStoreEvictionPolicy="LFU">
     </cache>
 
+    <cache name="us.pojo.silentauction.model.Item.bids"
+       maxElementsInMemory="100000"
+       eternal="true"
+       memoryStoreEvictionPolicy="LFU">
+    </cache>
+
     <cache name="us.pojo.silentauction.model.Bid"
        maxElementsInMemory="100000"
        eternal="true"
