@@ -117,6 +117,18 @@ public class Item {
         }
     }
     
+    public Double getHighBidForUser(User user) {
+        return bids.stream().filter(b->user.equals(b.getUser())).mapToDouble(Bid::getBid).findFirst().orElse(0.0);
+    }
+    
+    public Double getAmountOutBidByForUser(User user) {
+        if (user.equals(getHighBidder())) {
+            return 0.0;
+        } else {
+            return getHighBidAmount() - getHighBidForUser(user);
+        }
+    }
+    
     public User getHighBidder() {
         return Optional.ofNullable(getHighBid()).map(Bid::getUser).orElse(null);
     }

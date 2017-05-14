@@ -1,6 +1,9 @@
 package us.pojo.silentauction.controller;
 
+import static java.util.stream.Collectors.toList;
+
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -80,11 +83,13 @@ public class AuctionController {
         return "redirect:/item.html?id="+itemId;
     }
     
+    
     @GetMapping(value="/items.html")
     public ModelAndView getItems(@RequestParam(name="filter", required=false, defaultValue="not_set") String filter) {
         ModelAndView model = new ModelAndView("items");
         List<Item> results;
         String viewName;
+        String view = "items";
         User currentUser = getCurrentUser();
         switch (filter) {
         case "no_bids":
@@ -92,8 +97,23 @@ public class AuctionController {
             viewName = "Items with no bids yet";
             break;
         case "my_bids":
+                Comparator<Item> sortItemsByWinAndAmount = new Comparator<Item>() {
+                    @Override
+                    public int compare(Item o1, Item o2) {
+                        if (currentUser.equals(o1.getHighBidder()) && currentUser.equals(o2.getHighBidder())) {
+                            return Double.compare(o2.getHighBidAmount(), o1.getHighBidAmount());
+                        } else if (currentUser.equals(o1.getHighBidder())) {
+                            return -1;
+                        } else {
+                            return 1;
+                        }
+                    }
+                }; 
+
                 results = items.findItemsByBidder(currentUser);
+                results = results.stream().sorted(sortItemsByWinAndAmount).collect(toList());
                 viewName = "Items that I've bid on";
+                view = "my-bids";
                 break;
         case "my_donations":
                 viewName = "Items that I've donated";
@@ -101,25 +121,33 @@ public class AuctionController {
                 break;
         default:
                 viewName = "All Items";
-                results = items.findAll();
+                results = items.findAllByOrderByIdDesc();
                 break;
         }
+        model = new ModelAndView(view);
         model.addObject("viewName", viewName);
         model.addObject("items", results);
+        defaultNav(model);
+
         if (currentUser.isAdmin()) {
             model.addObject("navUrl", "edit-item.html");
             model.addObject("navIcon", "glyphicon-plus");
             model.addObject("navText", "Add Item");
             model.addObject("currentUser", getCurrentUser());
             model.addObject("auction", auctions.findOne(1));
-        } else {
-            defaultNav(model);
         }
+        
         return model;
     }
 
     private void defaultNav(ModelAndView model) {
-        model.addObject("currentUser", getCurrentUser());
+        List<Item> allItems = items.findAllByOrderByIdDesc();
+        User currentUser = getCurrentUser();
+        model.addObject("currentDonation", allItems.stream()
+                .filter(item->currentUser.equals(item.getHighBidder()))
+                .mapToDouble(Item::getHighBidAmount)
+                .sum());
+        model.addObject("currentUser", currentUser);
         model.addObject("navUrl", "items.html");
         model.addObject("navIcon", "glyphicon-th");
         model.addObject("navText", "Items");
@@ -133,7 +161,6 @@ public class AuctionController {
         ModelAndView mav = new ModelAndView("item");
         Item item = items.findOne(id);
         User user = getCurrentUser();
-        defaultNav(mav);
         mav.addObject("item", item);
         if (bidAmount == null) {
             mav.addObject("errMsg", String.format("'%s' is not a number. Bids must be numbers.", bidAmountInput));
@@ -142,6 +169,8 @@ public class AuctionController {
             biddingService.bid(user, item, bidAmount, error);
             mav.addObject("errMsg", error.get());
         }
+
+        defaultNav(mav);
 
         return mav;
     }
