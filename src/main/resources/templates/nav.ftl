@@ -16,7 +16,7 @@
                 <li><a href="items.html">All Items</a></li>
                 </#if>
                 <li><a href="items.html?filter=my_bids">My Bids (Donating ${(currentDonation?string.currency)!"$0"})</a></li>
-                <li><a href="items.html?filter=my_donations">My Donations</a></li>
+                <!--<li><a href="items.html?filter=my_donations">My Donations</a></li>-->
                 <li><a href="items.html?filter=no_bids">No Bid Items</a></li>
                 <li><a href="report.html">Total Donations</a></li>
                 <#if currentUser?? && currentUser.admin><li><a href="winners.html">Item Winners</a></li></#if>
