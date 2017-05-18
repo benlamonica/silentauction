@@ -21,7 +21,7 @@
           </div>
           <button type="submit" class="btn btn-primary btn-block">Bid</button>
         </form>
-        <#/if>
+        </#if>
         <h3>${item.name}</h3>
         <img class="img-responsive" src="images/${item.id}.jpg"/>
         <p>
