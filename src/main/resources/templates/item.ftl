@@ -9,6 +9,7 @@
     <div class="container">
         <#include "nav.ftl">
         <p class="text-center"><mark>${(item.highBidder.shortName?ensure_ends_with("'s"))!} High Bid: ${item.highBidAmount?string.currency!"$0"}</mark></p>
+        <#if auction?? && !auction.auctionClosed>
         <form class="form" action="bid.html" method="POST">
         <input type="hidden" name="id" value="${item.id}"/>
           <div class="form-group">
@@ -20,6 +21,7 @@
           </div>
           <button type="submit" class="btn btn-primary btn-block">Bid</button>
         </form>
+        <#/if>
         <h3>${item.name}</h3>
         <img class="img-responsive" src="images/${item.id}.jpg"/>
         <p>

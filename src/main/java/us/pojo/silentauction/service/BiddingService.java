@@ -6,9 +6,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import us.pojo.silentauction.model.Auction;
 import us.pojo.silentauction.model.Bid;
 import us.pojo.silentauction.model.Item;
 import us.pojo.silentauction.model.User;
+import us.pojo.silentauction.repository.AuctionRepository;
 import us.pojo.silentauction.repository.BidRepository;
 import us.pojo.silentauction.repository.UserRepository;
 
@@ -17,17 +19,23 @@ public class BiddingService {
     private double US_GDP = 18.56 * 1000000000000d;
     private final BidRepository bids;
     private final NotificationService notify;
-    
+    private final Auction auction;
     @Autowired
-    public BiddingService(BidRepository bids, UserRepository users, NotificationService notify) {
+    public BiddingService(BidRepository bids, UserRepository users, NotificationService notify, AuctionRepository auctionRepo) {
         this.bids = bids;
         this.notify = notify;
+        auction = auctionRepo.findOne(1);
     }
 
     public Item bid(User user, Item item, double bidAmount, AtomicReference<String> error) {
         if (item == null) {
             error.set("Unable to find item.");
             return null;
+        }
+        
+        if (auction.isAuctionClosed()) {
+            error.set("Auction is closed. No more bidding allowed.");
+            return item;
         }
         
         Optional<Bid> highBid = Optional.ofNullable(item.getHighBid());
