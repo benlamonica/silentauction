@@ -95,7 +95,7 @@ public class NotificationService {
             // Assemble the email.
             SendEmailRequest request = new SendEmailRequest().withSource(senderEmail).withDestination(destination).withMessage(message);
             SendEmailResult result = sesClient.sendEmail(request);
-            log.info("Email message was sent to SES {}", result);
+            log.info("Email message to {} was sent to SES {}", user.getEmail(), result);
         } catch (Exception e) {
             log.warn("Unable to send end of auction e-mail.", e);
         }
