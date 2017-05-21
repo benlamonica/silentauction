@@ -124,4 +124,8 @@ public class UserDetailService implements UserDetailsService {
         return false;
     }
 
+    public Iterable<User> getAllUsers() {
+        return users.findAll();
+    }
+
 }

@@ -1,9 +1,6 @@
 package us.pojo.silentauction.controller;
 
-import static java.util.stream.Collectors.toList;
-
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
@@ -32,6 +29,7 @@ import us.pojo.silentauction.model.User;
 import us.pojo.silentauction.repository.AuctionRepository;
 import us.pojo.silentauction.repository.BidRepository;
 import us.pojo.silentauction.repository.ItemRepository;
+import us.pojo.silentauction.service.BidQueryService;
 import us.pojo.silentauction.service.BiddingService;
 import us.pojo.silentauction.service.ImageService;
 import us.pojo.silentauction.service.NotificationService;
@@ -61,6 +59,9 @@ public class AuctionController {
     @Autowired
     private AuthenticationManager authManager;
     
+    @Autowired
+    private BidQueryService bidQueryService;
+    
     @Autowired 
     private BidRepository bids;
     
@@ -82,7 +83,45 @@ public class AuctionController {
         bids.delete(bidId);
         return "redirect:/item.html?id="+itemId;
     }
-    
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(value="/end-of-auction.html")
+    public ModelAndView endOfAuction(@RequestParam(name="userId") int userId) {
+        ModelAndView mav = new ModelAndView("end-of-auction");
+        bidQueryService.populateEndOfAuctionModel(userId, mav::addObject);
+        return mav;
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(value="/users.html")
+    public ModelAndView endOfAuction() {
+        ModelAndView mav = new ModelAndView("users");
+        defaultNav(mav);
+        mav.addObject("users", userService.getAllUsers());
+        return mav;
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(value="/send-all-eoa-email.html")
+    public String sendEndOfAuctionEmail() {
+        userService.getAllUsers().forEach(u->{
+            if (u != null) {
+                try {
+                    notificationSerivce.sendEndOfAuctionEmail(u.getId());
+                } catch (Exception e) {
+                    log.error("Unable to send e-mail for {}", u, e);
+                }
+            }
+        });
+        return "redirect:/users.html";
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(value="/send-eoa-email.html")
+    public String sendEndOfAuctionEmail(@RequestParam("userId") Integer userId) {
+        notificationSerivce.sendEndOfAuctionEmail(userId);
+        return "redirect:/users.html";
+    }
     
     @GetMapping(value="/items.html")
     public ModelAndView getItems(@RequestParam(name="filter", required=false, defaultValue="not_set") String filter) {
@@ -97,21 +136,7 @@ public class AuctionController {
             viewName = "Items with no bids yet";
             break;
         case "my_bids":
-                Comparator<Item> sortItemsByWinAndAmount = new Comparator<Item>() {
-                    @Override
-                    public int compare(Item o1, Item o2) {
-                        if (currentUser.equals(o1.getHighBidder()) && currentUser.equals(o2.getHighBidder())) {
-                            return Double.compare(o2.getHighBidAmount(), o1.getHighBidAmount());
-                        } else if (currentUser.equals(o1.getHighBidder())) {
-                            return -1;
-                        } else {
-                            return 1;
-                        }
-                    }
-                }; 
-
-                results = items.findItemsByBidder(currentUser);
-                results = results.stream().sorted(sortItemsByWinAndAmount).collect(toList());
+                results = bidQueryService.getItemsUserBidOn(currentUser);
                 viewName = "Items that I've bid on";
                 view = "my-bids";
                 break;
@@ -268,13 +293,14 @@ public class AuctionController {
     
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value="/edit-auction.html")
-    public String saveAuction(@RequestParam("auction_picture") MultipartFile picture, @RequestParam("name") String name, @RequestParam("description") String description, @DateTimeFormat(pattern="MM/dd/yyyy h:mm a") @RequestParam("endsAt") LocalDateTime endsAt, @RequestParam("organizer") String organizer, @RequestParam("organizerEmail") String organizerEmail) {
+    public String saveAuction(@RequestParam("auction_picture") MultipartFile picture, @RequestParam("name") String name, @RequestParam("description") String description, @DateTimeFormat(pattern="MM/dd/yyyy h:mm a") @RequestParam("endsAt") LocalDateTime endsAt, @RequestParam("organizer") String organizer, @RequestParam("organizerEmail") String organizerEmail, @RequestParam("endOfAuctionInstructions") String endOfAuctionInstructions) {
         Auction auction = auctions.findOne(1);
         if (auction == null) {
             auction = new Auction();
         }
         
         auction.setDescription(description);
+        auction.setEndOfAuctionInstructions(endOfAuctionInstructions);
         auction.setName(name);
         auction.setEnds(endsAt);
         auction.setOrganizer(organizer);

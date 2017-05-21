@@ -28,6 +28,9 @@ public class Auction {
     
     private LocalDateTime ends;
 
+    @Column(length=4096)
+    private String endOfAuctionInstructions;
+
     public int getId() {
         return id;
     }
@@ -85,6 +88,14 @@ public class Auction {
         return LocalDateTime.now().isAfter(ends);
     }
     
+    public String getEndOfAuctionInstructions() {
+        return endOfAuctionInstructions;
+    }
+
+    public void setEndOfAuctionInstructions(String endOfAuctionInstructions) {
+        this.endOfAuctionInstructions = endOfAuctionInstructions;
+    }
+
     public String getTimeLeft() {
         LocalDateTime now = LocalDateTime.now();
         long days = now.until(ends, ChronoUnit.DAYS);

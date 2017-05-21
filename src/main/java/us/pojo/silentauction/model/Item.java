@@ -121,8 +121,12 @@ public class Item {
         return bids.stream().filter(b->user.equals(b.getUser())).mapToDouble(Bid::getBid).findFirst().orElse(0.0);
     }
     
+    public boolean isUserHighBidder(User user) {
+        return user != null && user.equals(getHighBidder());
+    }
+    
     public Double getAmountOutBidByForUser(User user) {
-        if (user.equals(getHighBidder())) {
+        if (isUserHighBidder(user)) {
             return 0.0;
         } else {
             return getHighBidAmount() - getHighBidForUser(user);

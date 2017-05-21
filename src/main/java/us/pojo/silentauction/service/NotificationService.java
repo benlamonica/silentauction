@@ -1,5 +1,6 @@
 package us.pojo.silentauction.service;
 
+import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -27,6 +28,8 @@ import com.amazonaws.services.sns.model.MessageAttributeValue;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
 
+import freemarker.template.Configuration;
+import freemarker.template.Template;
 import us.pojo.silentauction.model.Bid;
 import us.pojo.silentauction.model.Item;
 import us.pojo.silentauction.model.User;
@@ -40,7 +43,12 @@ public class NotificationService {
     private Map<String, MessageAttributeValue> smsAttributes = new HashMap<String, MessageAttributeValue>();
     private final String url;
     private final String senderEmail;
-    public NotificationService(@Value("${silentauction.external-url}") String url, @Value("${silentauction.sender-email}") String senderEmail) {
+    private final Configuration freemarker;
+    private final BidQueryService bidQuerySerivce;
+    
+    public NotificationService(@Value("${silentauction.external-url}") String url, @Value("${silentauction.sender-email}") String senderEmail, Configuration freemarker, BidQueryService bidQueryService) {
+        this.freemarker = freemarker;
+        this.bidQuerySerivce = bidQueryService;
         this.url = url;
         this.senderEmail = senderEmail;
         smsAttributes.put("AWS.SNS.SMS.MaxPrice", new MessageAttributeValue()
@@ -53,6 +61,40 @@ public class NotificationService {
 
     private double getDiff(Bid oldHighBid, Bid newHighBid) {
        return newHighBid.getBid() - oldHighBid.getBid();
+    }
+    
+    public void sendEndOfAuctionEmail(int userId) {
+        try {
+            Template t = freemarker.getTemplate("end-of-auction.ftl");
+            Map<String,Object> model = new HashMap<>();
+            bidQuerySerivce.populateEndOfAuctionModel(userId, model::put);
+            User user = (User) model.get("user");
+            
+            if (user == null) {
+                // no user, nothing to do
+                return;
+            }
+            
+            StringWriter out = new StringWriter();
+            t.process(model, out);
+        
+            Destination destination = new Destination().withToAddresses(user.getEmail());
+
+            // Create the subject and body of the message.
+            Content subject = new Content().withData("Silent Auction Completed");
+            Content htmlBody = new Content().withData(out.toString()); 
+            Body body = new Body().withHtml(htmlBody);
+            
+            // Create a message with the specified subject and body.
+            Message message = new Message().withSubject(subject).withBody(body);
+            
+            // Assemble the email.
+            SendEmailRequest request = new SendEmailRequest().withSource(senderEmail).withDestination(destination).withMessage(message);
+            SendEmailResult result = sesClient.sendEmail(request);
+            log.info("Email message was sent to SES {}", result);
+        } catch (Exception e) {
+            log.warn("Unable to send end of auction e-mail.", e);
+        }
     }
     
     public void verifyAddress(String email) {
