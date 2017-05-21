@@ -67,9 +67,13 @@ public class NotificationService {
         try {
             Template t = freemarker.getTemplate("end-of-auction.ftl");
             Map<String,Object> model = new HashMap<>();
-            bidQuerySerivce.populateEndOfAuctionModel(userId, model::put);
-            User user = (User) model.get("user");
             
+            if (!bidQuerySerivce.populateEndOfAuctionModel(userId, model::put)) {
+                log.info("User {} has no bids, not sending final e-mail.", userId);
+                return;
+            }
+            
+            User user = (User) model.get("user");
             if (user == null) {
                 // no user, nothing to do
                 return;

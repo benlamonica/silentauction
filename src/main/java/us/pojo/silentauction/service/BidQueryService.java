@@ -27,7 +27,7 @@ public class BidQueryService {
     @Autowired
     private ItemRepository items;
     
-    public void populateEndOfAuctionModel(int userId, BiConsumer<String, Object> model) {
+    public boolean populateEndOfAuctionModel(int userId, BiConsumer<String, Object> model) {
         User user = userService.findOne(userId);
         List<Item> items = getItemsUserBidOn(user);
         model.accept("user", user);
@@ -38,6 +38,7 @@ public class BidQueryService {
         model.accept("wonItems", wonItems);
         model.accept("lostItems", lostItems);
         model.accept("auction", auctions.findOne(1));
+        return (wonItems.size() + lostItems.size()) > 0;
     }
     
     public List<Item> getItemsUserBidOn(User user) {
