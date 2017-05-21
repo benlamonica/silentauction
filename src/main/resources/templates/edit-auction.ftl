@@ -22,6 +22,10 @@
             <textarea class="form-control" name="endOfAuctionInstructions">${(auction.endOfAuctionInstructions)!""}</textarea>
           </div>
           <div class="form-group">
+            <label for="endOfAuctionInstructionsText">End Of Auction Instructions (Text)</label>
+            <textarea class="form-control" name="endOfAuctionInstructionsText">${(auction.endOfAuctionInstructionsText)!""}</textarea>
+          </div>
+          <div class="form-group">
             <label for="name">Organizer Name</label>
             <input type="text" class="form-control" name="organizer" value="${(auction.organizer)!""}" placeholder="Organizer Name">
           </div>

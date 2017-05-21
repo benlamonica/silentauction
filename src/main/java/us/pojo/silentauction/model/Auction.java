@@ -31,6 +31,9 @@ public class Auction {
     @Column(length=4096)
     private String endOfAuctionInstructions;
 
+    @Column(length=4096)
+    private String endOfAuctionInstructionsText;
+
     public int getId() {
         return id;
     }
@@ -53,6 +56,14 @@ public class Auction {
 
     public void setOrganizer(String organizer) {
         this.organizer = organizer;
+    }
+
+    public String getEndOfAuctionInstructionsText() {
+        return endOfAuctionInstructionsText;
+    }
+
+    public void setEndOfAuctionInstructionsText(String endOfAuctionInstructionsText) {
+        this.endOfAuctionInstructionsText = endOfAuctionInstructionsText;
     }
 
     public String getName() {

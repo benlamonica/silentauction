@@ -65,7 +65,8 @@ public class NotificationService {
     
     public void sendEndOfAuctionEmail(int userId) {
         try {
-            Template t = freemarker.getTemplate("end-of-auction.ftl");
+            Template html = freemarker.getTemplate("end-of-auction.ftl");
+            Template text = freemarker.getTemplate("end-of-auction-text.ftl");
             Map<String,Object> model = new HashMap<>();
             
             if (!bidQuerySerivce.populateEndOfAuctionModel(userId, model::put)) {
@@ -79,15 +80,18 @@ public class NotificationService {
                 return;
             }
             
-            StringWriter out = new StringWriter();
-            t.process(model, out);
+            StringWriter htmlOut = new StringWriter();
+            StringWriter textOut = new StringWriter();
+            html.process(model, htmlOut);
+            text.process(model, textOut);
         
             Destination destination = new Destination().withToAddresses(user.getEmail());
 
             // Create the subject and body of the message.
             Content subject = new Content().withData("Silent Auction Completed");
-            Content htmlBody = new Content().withData(out.toString()); 
-            Body body = new Body().withHtml(htmlBody);
+            Content htmlBody = new Content().withData(htmlOut.toString()); 
+            Content textBody = new Content().withData(textOut.toString()); 
+            Body body = new Body().withHtml(htmlBody).withText(textBody);
             
             // Create a message with the specified subject and body.
             Message message = new Message().withSubject(subject).withBody(body);

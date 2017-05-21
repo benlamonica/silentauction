@@ -293,7 +293,7 @@ public class AuctionController {
     
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value="/edit-auction.html")
-    public String saveAuction(@RequestParam("auction_picture") MultipartFile picture, @RequestParam("name") String name, @RequestParam("description") String description, @DateTimeFormat(pattern="MM/dd/yyyy h:mm a") @RequestParam("endsAt") LocalDateTime endsAt, @RequestParam("organizer") String organizer, @RequestParam("organizerEmail") String organizerEmail, @RequestParam("endOfAuctionInstructions") String endOfAuctionInstructions) {
+    public String saveAuction(@RequestParam("auction_picture") MultipartFile picture, @RequestParam("name") String name, @RequestParam("description") String description, @DateTimeFormat(pattern="MM/dd/yyyy h:mm a") @RequestParam("endsAt") LocalDateTime endsAt, @RequestParam("organizer") String organizer, @RequestParam("organizerEmail") String organizerEmail, @RequestParam("endOfAuctionInstructions") String endOfAuctionInstructions, @RequestParam("endOfAuctionInstructionsText") String endOfAuctionInstructionsText) {
         Auction auction = auctions.findOne(1);
         if (auction == null) {
             auction = new Auction();
@@ -301,6 +301,7 @@ public class AuctionController {
         
         auction.setDescription(description);
         auction.setEndOfAuctionInstructions(endOfAuctionInstructions);
+        auction.setEndOfAuctionInstructionsText(endOfAuctionInstructionsText);
         auction.setName(name);
         auction.setEnds(endsAt);
         auction.setOrganizer(organizer);
