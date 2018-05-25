@@ -27,7 +27,7 @@ public class Item {
     @Column(length=512)
     private String name;
 
-    @Column(length=2048)
+    @Column(length=8192)
     private String description;
 
     private boolean isHidden;
@@ -35,6 +35,7 @@ public class Item {
     @ManyToOne
     private User seller;
     
+    @Column(length=8192)
     private String donor;
 
     @Cache(usage=CacheConcurrencyStrategy.READ_WRITE)
