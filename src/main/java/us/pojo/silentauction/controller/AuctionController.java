@@ -429,7 +429,7 @@ public class AuctionController {
     
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(value="/edit-item.html")
-    public String saveItem(@RequestParam("item_picture") MultipartFile picture, @RequestParam("id") int id, @RequestParam("name") String name, @RequestParam("description") String description, @RequestParam("donor") String donor) {
+    public String saveItem(@RequestParam("item_picture") MultipartFile picture, @RequestParam("id") int id, @RequestParam("name") String name, @RequestParam("description") String description, @RequestParam("donor") String donor, @RequestParam("minimum_bid") Double minimumBid) {
         Item item;
         User user = getCurrentUser();
         Optional<String> view = Optional.empty();
@@ -445,6 +445,7 @@ public class AuctionController {
             item.setDescription(description);
             item.setDonor(donor);
             item.setSeller(user);
+            item.setMinimumBid(Optional.ofNullable(minimumBid).orElse(0d));
             item = items.save(item);
             images.save(String.valueOf(item.getId()), picture);
         }

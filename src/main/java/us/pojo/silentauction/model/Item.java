@@ -37,6 +37,9 @@ public class Item {
     
     @Column(length=8192)
     private String donor;
+    
+    @Column(columnDefinition="double default 0.0")
+    private double minimumBid = 0;
 
     @Cache(usage=CacheConcurrencyStrategy.READ_WRITE)
     @SortNatural
@@ -114,7 +117,7 @@ public class Item {
         if (bid != null) {
             return bid.getBid();
         } else {
-            return 0.0;
+            return getMinimumBid();
         }
     }
     
@@ -146,7 +149,15 @@ public class Item {
         return result;
     }
 
-    @Override
+    public double getMinimumBid() {
+		return minimumBid;
+	}
+
+	public void setMinimumBid(double minimumBid) {
+		this.minimumBid = minimumBid;
+	}
+
+	@Override
     public boolean equals(Object obj) {
         if (this == obj)
             return true;

@@ -37,6 +37,11 @@ public class BiddingService {
             error.set("Auction is closed. No more bidding allowed.");
             return item;
         }
+
+        if (bidAmount < item.getMinimumBid()) {
+            error.set(String.format("Bid must be greater than the minimum bid $%.2f", item.getMinimumBid()));
+            return item;
+        }
         
         Optional<Bid> highBid = Optional.ofNullable(item.getHighBid());
         double highBidAmount = highBid.map(Bid::getBid).orElse(0.0); 

@@ -18,6 +18,10 @@
             <textarea class="form-control" name="description">${item.description!""}</textarea>
           </div>
           <div class="form-group">
+            <label for="minimum_bid">Minimum Bid</label>
+            <input type="text" class="form-control" name="minimum_bid" value="${(item.minimumBid)!"0.00"}"/>
+          </div>
+          <div class="form-group">
             <label for="donor">Donor</label>
             <input type="text" class="form-control" name="donor" value="${(item.donor)!""}"/>
           </div>

@@ -8,7 +8,7 @@
   <body>
     <div class="container">
         <#include "nav.ftl">
-        <p class="text-center"><mark>${(item.highBidder.shortName?ensure_ends_with("'s"))!} High Bid: ${item.highBidAmount?string.currency!"$0"}</mark></p>
+        <p class="text-center"><mark>${(item.highBidder.shortName?ensure_ends_with("'s"))!} High Bid: ${item.highBidAmount?string.currency!item.minimumBid?string.currency}</mark></p>
         <#if auction?? && !auction.auctionClosed>
         <form class="form" action="bid.html" method="POST">
         <input type="hidden" name="id" value="${item.id}"/>
