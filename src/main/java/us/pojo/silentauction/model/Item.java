@@ -111,13 +111,22 @@ public class Item {
         }
         return null;
     }
-    
-    public Double getHighBidAmount() {
+
+    public Double getHighBidOrMinimumAmount() {
         Bid bid = getHighBid();
         if (bid != null) {
             return bid.getBid();
         } else {
             return getMinimumBid();
+        }
+    }
+
+    public Double getHighBidAmount() {
+        Bid bid = getHighBid();
+        if (bid != null) {
+            return bid.getBid();
+        } else {
+            return 0.0;
         }
     }
     

@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<#macro if if then else=""><#if if>${then}<#else>${else}</#if></#macro>
 <html lang="en">
   <head>
     <#setting datetime_format="MM/dd HH:mma">
@@ -8,7 +9,7 @@
   <body>
     <div class="container">
         <#include "nav.ftl">
-        <p class="text-center"><mark>${(item.highBidder.shortName?ensure_ends_with("'s"))!} High Bid: ${item.highBidAmount?string.currency!item.minimumBid?string.currency}</mark></p>
+        <p class="text-center"><mark>${(item.highBidder.shortName?ensure_ends_with("'s"))!} <@if (item.bids?size gt 0) "High" "Starting"/> Bid: ${item.highBidOrMinimumAmount?string.currency!item.minimumBid?string.currency}</mark></p>
         <#if auction?? && !auction.auctionClosed>
         <form class="form" action="bid.html" method="POST">
         <input type="hidden" name="id" value="${item.id}"/>
