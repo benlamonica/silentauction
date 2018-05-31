@@ -9,7 +9,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.DoubleValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.env.PropertyResolver;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.ModelAndView;
 
+import scala.sys.process.processInternal;
 import us.pojo.silentauction.model.Auction;
 import us.pojo.silentauction.model.Item;
 import us.pojo.silentauction.model.User;
@@ -229,28 +234,16 @@ public class AuctionController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/add-admin.html")
-    public ModelAndView addAdmin(@RequestParam("email") String email) {
-        boolean success = userService.setUserAsAdmin(email, true);
-        ModelAndView mav = getItems("not_set");
-        if (success) {
-            mav.addObject("msg", String.format("%s is now an admin.", email));
-        } else {
-            mav.addObject("errMsg", String.format("Failed to make %s an admin.", email));
-        }
-        return mav;
+    public String addAdmin(@RequestParam("userId") int userId) {
+        userService.setUserAsAdmin(userId, true);
+        return "redirect:users.html";
     }
     
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/remove-admin.html")
-    public ModelAndView removeAdmin(@RequestParam("email") String email) {
-        boolean success = userService.setUserAsAdmin(email, false);
-        ModelAndView mav = getItems("not_set");
-        if (success) {
-            mav.addObject("msg", String.format("%s is no longer an admin.", email));
-        } else {
-            mav.addObject("errMsg", String.format("Failed to remove admin from %s.", email));
-        }
-        return mav;
+    public String removeAdmin(@RequestParam("userId") int userId) {
+        userService.setUserAsAdmin(userId, false);
+        return "redirect:users.html";
     }
     
     @GetMapping("/validate-email.html")
@@ -266,6 +259,27 @@ public class AuctionController {
         return mav;
     }
     
+    @GetMapping("/reset-password.html")
+    public String changePassword(@RequestParam(name="email") String email, @RequestParam(name="token") String token) {
+    	User user = userService.getUserByPasswordToken(email, token);
+    	if (user != null) {
+            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user, token, user.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(auth);
+        	return "redirect:/edit-account.html";
+    	} else {
+    		return "redirect:/login.html";
+    	}
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/send-reset-password-link.html")
+    public String changePassword(@RequestParam(name="userId") int userId) {
+    	User user = userService.getUser(userId);
+    	userService.updatePasswordResetToken(user);
+    	notificationSerivce.sendPasswordResetEmail(user);
+    	return "redirect:users.html";
+    }
+
     @GetMapping("/resend-validation-email.html")
     public ModelAndView resendValidation() {
         User user = getCurrentUser();
@@ -352,6 +366,8 @@ public class AuctionController {
         return "redirect:/about.html";
     }
     
+    
+    
     private void refreshUserInSecurityContext(User user) {
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(user, user.getPassword(), user.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(auth);
@@ -385,7 +401,7 @@ public class AuctionController {
         defaultNav(mav);
         return mav;
     }
-    
+
     @GetMapping(value="/report.html")
     public ModelAndView report() {
         ModelAndView mav = new ModelAndView("report");
@@ -451,5 +467,6 @@ public class AuctionController {
         }
         return view.orElse("redirect:/item.html?id="+item.getId());
     }
-
+    
+    
 }

@@ -22,6 +22,7 @@
                 <#if currentUser?? && currentUser.admin><li><a href="winners.html">Item Winners</a></li></#if>
                 <li><a href="about.html">About this auction</a></li>
                 <li><a href="edit-account.html">Edit Account</a></li>
+                <#if currentUser?? && currentUser.admin><li><a href="users.html">Users</a></li></#if>
               </ul>
               <form class="navbar-form navbar-left" action="/logout">
                 <button type="submit" class="btn btn-danger">Sign Out - ${(currentUser.shortName)!""}</button>

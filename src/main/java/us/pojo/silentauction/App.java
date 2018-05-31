@@ -60,7 +60,7 @@ public class App extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http.csrf().disable()
             .authorizeRequests()
-                .antMatchers("/webjars/**", "/site.css", "/create-account.html", "/login.html").permitAll()
+                .antMatchers("/webjars/**", "/site.css", "/create-account.html", "/login.html", "/reset-password.html").permitAll()
                 .anyRequest().authenticated()
                 .and()
             .rememberMe()

@@ -1,6 +1,7 @@
 package us.pojo.silentauction.service;
 
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -106,6 +107,24 @@ public class UserDetailService implements UserDetailsService {
         return user;
     }
 
+    public User getUserByPasswordToken(String email, String token) {
+    	if (StringUtils.isNotBlank(token)) {
+            User user = users.findUserByResetPasswordToken(token);
+            if (user != null && email.equalsIgnoreCase(user.getEmail()) && user.getResetPasswordTokenExpiration() > System.currentTimeMillis()) {
+            	return user;
+            }	
+    	}
+    	return null;
+    }
+    
+    public void updatePasswordResetToken(User user) {
+        User dbUser = users.findOne(user.getId());
+        dbUser.setResetPasswordToken(UUID.randomUUID().toString());
+        dbUser.setResetPasswordTokenExpiration(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(30));
+        user.setResetPasswordToken(dbUser.getResetPasswordToken());
+    }
+
+    
     public boolean markUserAsVerified(User currentUser, String token) {
         User user = users.findUserByVerifyToken(token);
         if (currentUser.equals(user)) {
@@ -115,8 +134,8 @@ public class UserDetailService implements UserDetailsService {
         return false;
     }
     
-    public boolean setUserAsAdmin(String email, boolean isAdmin) {
-        User user = users.findUserByEmail(email);
+    public boolean setUserAsAdmin(int userId, boolean isAdmin) {
+        User user = users.findOne(userId);
         if (user != null) {
             user.setAdmin(isAdmin);
             return true;
@@ -127,5 +146,4 @@ public class UserDetailService implements UserDetailsService {
     public Iterable<User> getAllUsers() {
         return users.findAll();
     }
-
 }

@@ -204,4 +204,21 @@ public class NotificationService {
         log.info("SMS message was sent to SNS {}", result);
         });
     }
+
+	public void sendPasswordResetEmail(User user) {
+        // Create the subject and body of the message.
+        Content subject = new Content().withData(String.format("Silent Auction Password Reset"));
+        Content textBody = new Content().withData(String.format("Hello %s,\n\nWe received a request to reset your password. Please click this link to reset, or ignore this e-mail if you do not want to change it\n %s/reset-password.html?email=%s&token=%s\n\nThis link is valid for 30 minutes only.", user.getShortName(), url, user.getEmail(), user.getResetPasswordToken())); 
+        Body body = new Body().withText(textBody);
+        
+        // Create a message with the specified subject and body.
+        Message message = new Message().withSubject(subject).withBody(body);
+        
+        Destination destination = new Destination().withToAddresses(user.getEmail());
+        
+        // Assemble the email.
+        SendEmailRequest request = new SendEmailRequest().withSource(senderEmail).withDestination(destination).withMessage(message);
+        SendEmailResult result = sesClient.sendEmail(request);
+        log.info("Password e-mail reset was sent to SES {}", result);
+	}
 }

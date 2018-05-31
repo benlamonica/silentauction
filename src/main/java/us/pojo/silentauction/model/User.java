@@ -36,6 +36,12 @@ public class User implements UserDetails {
     @Column(length=36)
     private String verifyToken;
     
+    @Column(length=36, columnDefinition="VARCHAR(36) default null")
+    private String resetPasswordToken;
+
+    @Column(columnDefinition="BIGINT default null")
+    private Long resetPasswordTokenExpiration;
+
     private boolean wantsSms;
     private boolean wantsEmail;
     private boolean emailVerified;
@@ -52,13 +58,31 @@ public class User implements UserDetails {
         this.admin = isAdmin;
     }
     
-    public User() { }
+    public Long getResetPasswordTokenExpiration() {
+		return resetPasswordTokenExpiration;
+	}
+
+	public void setResetPasswordTokenExpiration(Long resetPasswordTokenExpiration) {
+		this.resetPasswordTokenExpiration = resetPasswordTokenExpiration;
+	}
+
+
+
+	public User() { }
     
     public boolean isAdmin() {
         return admin;
     }
 
-    public void setAdmin(boolean admin) {
+    public String getResetPasswordToken() {
+		return resetPasswordToken;
+	}
+
+	public void setResetPasswordToken(String resetPasswordToken) {
+		this.resetPasswordToken = resetPasswordToken;
+	}
+
+	public void setAdmin(boolean admin) {
         this.admin = admin;
     }
 
